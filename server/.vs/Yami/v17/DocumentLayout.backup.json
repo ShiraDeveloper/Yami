@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\ShiraProjects\\Yami\\server\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\stores.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\stores.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\interfaces\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\interfaces\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\stores.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\stores.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\interfaces\\icontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -38,11 +38,15 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Stores.cs",
               "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Stores.cs",
               "RelativeDocumentMoniker": "Repository\\Entities\\Stores.cs",
@@ -55,7 +59,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "IRepository.cs",
               "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Interfaces\\IRepository.cs",
               "RelativeDocumentMoniker": "Repository\\Interfaces\\IRepository.cs",
@@ -76,8 +80,7 @@
               "RelativeToolTip": "Repository\\Entities\\Users.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T20:38:13.957Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-08T20:38:13.957Z"
             },
             {
               "$type": "Document",
@@ -89,25 +92,19 @@
               "RelativeToolTip": "Repository\\Interfaces\\IContext.cs",
               "ViewState": "AgIAAAQAAAAAAAAAAAAswA8AAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T20:26:48.154Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-08T20:26:48.154Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "Repository",
+              "Title": "Repository.csproj",
               "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repository.csproj",
               "RelativeDocumentMoniker": "Repository\\Repository.csproj",
               "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repository.csproj",
               "RelativeToolTip": "Repository\\Repository.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-02-08T20:19:06.062Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+              "WhenOpened": "2026-02-08T20:19:06.062Z"
             },
             {
               "$type": "Document",
@@ -119,8 +116,7 @@
               "RelativeToolTip": "Repository\\Class1.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T20:18:35.809Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-08T20:18:35.809Z"
             },
             {
               "$type": "Document",
@@ -132,8 +128,7 @@
               "RelativeToolTip": "Yami.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-02-08T18:47:52.944Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-08T18:47:52.944Z"
             }
           ]
         }

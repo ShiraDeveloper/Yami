@@ -7,7 +7,7 @@ public enum Role
     Admin = 2
 }
 
-namespace Yami.Models
+namespace Repository.Entities
 {
     public class Users
     {

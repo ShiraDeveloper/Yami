@@ -2,9 +2,9 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
-using Yami.Models;
+using Repository.Entities;
 
-namespace Yami.Models
+namespace Repository.Entities
 {
     public enum OrderStatus
     {

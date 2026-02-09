@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Yami.Models
+namespace Repository.Entities
 {
     public class Stores
     {

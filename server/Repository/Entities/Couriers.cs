@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using Yami.Models;
 
-namespace Yami.Models
+
+namespace Repository.Entities
 {
     public class Couriers
     {
