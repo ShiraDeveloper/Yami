@@ -8,27 +8,18 @@ using System.Threading.Tasks;
 
 namespace DataContext
 {
-    public class YamiDbContext: DbContext,IContext
+    public class YamiDbContext: DbContext, IContext
     {
-        private readonly string _connection;
-        public YamiDbContext(string connectionString)
-        {
-            _connection = connectionString;
-        }
-
         public DbSet<Couriers> Couriers { get; set; }
         public DbSet<Orders> Orders { get; set; }
         public DbSet<Stores> Stores { get; set; }
         public DbSet<Users> Users { get; set; }
-
+        public YamiDbContext(DbContextOptions<YamiDbContext> options) : base(options)
+        {
+        }
         public async Task Save()
         {
             await base.SaveChangesAsync();
         }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer(_connection);
-        }
-
     }
 }
