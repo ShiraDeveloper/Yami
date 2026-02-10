@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common.Dto
+namespace Repository.Entities
 {
-    public class LoginDto
+    internal class DeliveryOrder
     {
-        public string Email { get; set; }
-        public string Password { get; set; }
     }
 }
-

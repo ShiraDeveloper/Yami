@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Repository\Repository.csproj" />
-    <ProjectReference Include="..\Yami.csproj" />
   </ItemGroup>
 
 </Project>

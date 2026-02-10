@@ -8,7 +8,7 @@ using Repository.Entities;
 
 namespace Repository.Interfaces
 {
-    internal interface IContext
+    public interface IContext
     {
         public DbSet<Couriers> Couriers { get; set; }
         public DbSet<Orders> Orders { get; set; }

@@ -28,8 +28,14 @@ namespace Repository.Entities
         public OrderStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ExpectedDeliveryTime { get; set; }
+        public float DeliveryLatitude { get; set; }
+        public float DeliveryLongitude { get; set; }
+        public float CurrentLatitude { get; set; }
+        public float CurrentLongitude { get; set; }
+        public DateTime LastUpdated { get; set; }
 
         //public ICollection<OrderItem> OrderItems { get; set; }
     }
 }
+
 
