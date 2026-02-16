@@ -20,4 +20,11 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="Common\Common.csproj" />
+    <ProjectReference Include="Repository\Repository.csproj" />
+    <ProjectReference Include="Service\Service.csproj" />
+    <ProjectReference Include="YamiDbContext\DataContext.csproj" />
+  </ItemGroup>
+
 </Project>

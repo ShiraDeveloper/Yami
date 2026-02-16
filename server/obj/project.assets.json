@@ -1630,6 +1630,57 @@
             "rid": "win"
           }
         }
+      },
+      "Common/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "Repository": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Common.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Common.dll": {}
+        }
+      },
+      "DataContext/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "9.0.11",
+          "Repository": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/DataContext.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/DataContext.dll": {}
+        }
+      },
+      "Repository/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "9.0.11",
+          "Microsoft.EntityFrameworkCore.SqlServer": "9.0.11"
+        },
+        "compile": {
+          "bin/placeholder/Repository.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Repository.dll": {}
+        }
+      },
+      "Service/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/Service.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Service.dll": {}
+        }
       }
     }
   },
@@ -4764,15 +4815,39 @@
         "system.windows.extensions.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "Common/1.0.0": {
+      "type": "project",
+      "path": "Common/Common.csproj",
+      "msbuildProject": "Common/Common.csproj"
+    },
+    "DataContext/1.0.0": {
+      "type": "project",
+      "path": "YamiDbContext/DataContext.csproj",
+      "msbuildProject": "YamiDbContext/DataContext.csproj"
+    },
+    "Repository/1.0.0": {
+      "type": "project",
+      "path": "Repository/Repository.csproj",
+      "msbuildProject": "Repository/Repository.csproj"
+    },
+    "Service/1.0.0": {
+      "type": "project",
+      "path": "Service/Service.csproj",
+      "msbuildProject": "Service/Service.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "Common >= 1.0.0",
+      "DataContext >= 1.0.0",
       "Microsoft.AspNetCore.OpenApi >= 9.0.0",
       "Microsoft.EntityFrameworkCore >= 9.0.11",
       "Microsoft.EntityFrameworkCore.Design >= 9.0.11",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.11",
-      "Microsoft.EntityFrameworkCore.Tools >= 9.0.11"
+      "Microsoft.EntityFrameworkCore.Tools >= 9.0.11",
+      "Repository >= 1.0.0",
+      "Service >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -4806,7 +4881,20 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\ShiraProjects\\Yami\\server\\Common\\Common.csproj": {
+              "projectPath": "C:\\ShiraProjects\\Yami\\server\\Common\\Common.csproj"
+            },
+            "C:\\ShiraProjects\\Yami\\server\\Repository\\Repository.csproj": {
+              "projectPath": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repository.csproj"
+            },
+            "C:\\ShiraProjects\\Yami\\server\\Service\\Service.csproj": {
+              "projectPath": "C:\\ShiraProjects\\Yami\\server\\Service\\Service.csproj"
+            },
+            "C:\\ShiraProjects\\Yami\\server\\YamiDbContext\\DataContext.csproj": {
+              "projectPath": "C:\\ShiraProjects\\Yami\\server\\YamiDbContext\\DataContext.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

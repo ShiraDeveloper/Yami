@@ -12,6 +12,8 @@ namespace Repository.Entities
         public int TotalDeliveries { get; set; }
         public int SalaryStatus { get; set; }
         public int LastUpdate { get; set; }
+        public double MaxBoxVolume { get; set; }       // נפח מקסימלי של הארגז
+        public double RemainingBoxVolume { get; set; } // נפח שנותר כרגע בארגז
     }
 }
 

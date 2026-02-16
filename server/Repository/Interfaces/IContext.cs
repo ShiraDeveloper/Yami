@@ -14,7 +14,11 @@ namespace Repository.Interfaces
         public DbSet<Orders> Orders { get; set; }
         public DbSet<Stores> Stores { get; set; }
         public DbSet<Users> Users { get; set; }
-
+        public DbSet<Delivery> Delivery { get; set; }
+        public DbSet<DeliveryOrder> DeliveryOrder { get; set; }
+        public DbSet<OrderItem> OrderItem { get; set; }
+        public DbSet<Menus> Items { get; set; }
+        public DbSet<CourierTracking> CourierTracking { get; set; }
         Task Save();
     }
 }

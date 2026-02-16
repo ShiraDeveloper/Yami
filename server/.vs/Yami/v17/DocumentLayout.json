@@ -3,32 +3,8 @@
   "WorkspaceRootPath": "C:\\ShiraProjects\\Yami\\server\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\orders.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\orders.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{32A7327B-8484-4113-985A-AE8422C2F5C1}|YamiDbContext\\DataContext.csproj|c:\\shiraprojects\\yami\\server\\yamidbcontext\\yamidbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{32A7327B-8484-4113-985A-AE8422C2F5C1}|YamiDbContext\\DataContext.csproj|solutionrelative:yamidbcontext\\yamidbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{32A7327B-8484-4113-985A-AE8422C2F5C1}|YamiDbContext\\DataContext.csproj|c:\\shiraprojects\\yami\\server\\yamidbcontext\\datacontext.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{32A7327B-8484-4113-985A-AE8422C2F5C1}|YamiDbContext\\DataContext.csproj|solutionrelative:yamidbcontext\\datacontext.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F86B6803-4EC8-4A3D-83B6-9E0619ABD6FA}|Common\\Common.csproj|c:\\shiraprojects\\yami\\server\\common\\dto\\logindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F86B6803-4EC8-4A3D-83B6-9E0619ABD6FA}|Common\\Common.csproj|solutionrelative:common\\dto\\logindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F86B6803-4EC8-4A3D-83B6-9E0619ABD6FA}|Common\\Common.csproj|c:\\shiraprojects\\yami\\server\\common\\dto\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F86B6803-4EC8-4A3D-83B6-9E0619ABD6FA}|Common\\Common.csproj|solutionrelative:common\\dto\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\couriers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\couriers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\interfaces\\icontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -39,16 +15,52 @@
       "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\repositories\\storerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\repositories\\storerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\repositories\\orderrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\repositories\\orderrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\repository.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\repository.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\repositories\\orderitemrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\repositories\\orderitemrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\couriers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\couriers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\orderitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\orderitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\couriertracking.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\couriertracking.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\stores.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\stores.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\deliveryorder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\deliveryorder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\menus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\menus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F86B6803-4EC8-4A3D-83B6-9E0619ABD6FA}|Common\\Common.csproj|c:\\shiraprojects\\yami\\server\\common\\dto\\logindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F86B6803-4EC8-4A3D-83B6-9E0619ABD6FA}|Common\\Common.csproj|solutionrelative:common\\dto\\logindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F86B6803-4EC8-4A3D-83B6-9E0619ABD6FA}|Common\\Common.csproj|c:\\shiraprojects\\yami\\server\\common\\dto\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F86B6803-4EC8-4A3D-83B6-9E0619ABD6FA}|Common\\Common.csproj|solutionrelative:common\\dto\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|c:\\shiraprojects\\yami\\server\\repository\\entities\\delivery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2DD2E7A2-9655-4A8B-B71D-F528A7CE0E0A}|Repository\\Repository.csproj|solutionrelative:repository\\entities\\delivery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{BE03A4D9-DCE8-4415-BEEF-D6D960377D66}|Yami.csproj|c:\\shiraprojects\\yami\\server\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}",
@@ -62,38 +74,175 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 1,
+              "Title": "IContext.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Interfaces\\IContext.cs",
+              "RelativeDocumentMoniker": "Repository\\Interfaces\\IContext.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Interfaces\\IContext.cs",
+              "RelativeToolTip": "Repository\\Interfaces\\IContext.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAQwBMAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-08T20:26:48.154Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": ".gitignore",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\.gitignore",
+              "RelativeDocumentMoniker": ".gitignore",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\.gitignore",
+              "RelativeToolTip": ".gitignore",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-02-08T21:31:10.763Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "UserRepository.cs",
               "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\UserRepository.cs",
               "RelativeDocumentMoniker": "Repository\\Repositories\\UserRepository.cs",
               "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\UserRepository.cs",
               "RelativeToolTip": "Repository\\Repositories\\UserRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAAYAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-02-08T23:48:15.573Z",
-              "IsPinned": true,
+              "IsPinned": true
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "YamiDbContext.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\YamiDbContext\\YamiDbContext.cs",
+              "RelativeDocumentMoniker": "YamiDbContext\\YamiDbContext.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\YamiDbContext\\YamiDbContext.cs",
+              "RelativeToolTip": "YamiDbContext\\YamiDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-16T22:14:34.066Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "DataContext",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\YamiDbContext\\DataContext.csproj",
-              "RelativeDocumentMoniker": "YamiDbContext\\DataContext.csproj",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\YamiDbContext\\DataContext.csproj",
-              "RelativeToolTip": "YamiDbContext\\DataContext.csproj",
+              "Title": "StoreRepository.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\StoreRepository.cs",
+              "RelativeDocumentMoniker": "Repository\\Repositories\\StoreRepository.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\StoreRepository.cs",
+              "RelativeToolTip": "Repository\\Repositories\\StoreRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-02-09T21:10:29.995Z",
-              "EditorCaption": ""
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T16:55:54.616Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
+              "Title": "OrderRepository.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\OrderRepository.cs",
+              "RelativeDocumentMoniker": "Repository\\Repositories\\OrderRepository.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\OrderRepository.cs",
+              "RelativeToolTip": "Repository\\Repositories\\OrderRepository.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T16:55:50.655Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "OrderItemRepository.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\OrderItemRepository.cs",
+              "RelativeDocumentMoniker": "Repository\\Repositories\\OrderItemRepository.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\OrderItemRepository.cs",
+              "RelativeToolTip": "Repository\\Repositories\\OrderItemRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T16:24:15.798Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "OrderItem.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\OrderItem.cs",
+              "RelativeDocumentMoniker": "Repository\\Entities\\OrderItem.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\OrderItem.cs",
+              "RelativeToolTip": "Repository\\Entities\\OrderItem.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAuwBgAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-10T19:20:23.788Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "CourierTracking.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\CourierTracking.cs",
+              "RelativeDocumentMoniker": "Repository\\Entities\\CourierTracking.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\CourierTracking.cs",
+              "RelativeToolTip": "Repository\\Entities\\CourierTracking.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-10T21:39:24.132Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Delivery.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Delivery.cs",
+              "RelativeDocumentMoniker": "Repository\\Entities\\Delivery.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Delivery.cs",
+              "RelativeToolTip": "Repository\\Entities\\Delivery.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAIwBQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-10T19:30:44.851Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "DeliveryOrder.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\DeliveryOrder.cs",
+              "RelativeDocumentMoniker": "Repository\\Entities\\DeliveryOrder.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\DeliveryOrder.cs",
+              "RelativeToolTip": "Repository\\Entities\\DeliveryOrder.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAIA7wBIAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-10T19:29:33.861Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Menus.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Menus.cs",
+              "RelativeDocumentMoniker": "Repository\\Entities\\Menus.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Menus.cs",
+              "RelativeToolTip": "Repository\\Entities\\Menus.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAuwBcAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-10T19:14:25.227Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Stores.cs",
+              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Stores.cs",
+              "RelativeDocumentMoniker": "Repository\\Entities\\Stores.cs",
+              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Stores.cs",
+              "RelativeToolTip": "Repository\\Entities\\Stores.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAA1wBkAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-10T19:12:56.165Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
               "Title": "LoginDto.cs",
               "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Common\\Dto\\LoginDto.cs",
               "RelativeDocumentMoniker": "Common\\Dto\\LoginDto.cs",
@@ -101,12 +250,11 @@
               "RelativeToolTip": "Common\\Dto\\LoginDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-09T22:32:13.216Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-09T22:32:13.216Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 13,
               "Title": "UserDto.cs",
               "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Common\\Dto\\UserDto.cs",
               "RelativeDocumentMoniker": "Common\\Dto\\UserDto.cs",
@@ -114,25 +262,7 @@
               "RelativeToolTip": "Common\\Dto\\UserDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-09T22:31:04.44Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "YamiDbContext.cs",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\YamiDbContext\\YamiDbContext.cs",
-              "RelativeDocumentMoniker": "YamiDbContext\\YamiDbContext.cs",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\YamiDbContext\\YamiDbContext.cs",
-              "RelativeToolTip": "YamiDbContext\\YamiDbContext.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-09T21:10:16.022Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+              "WhenOpened": "2026-02-09T22:31:04.44Z"
             },
             {
               "$type": "Document",
@@ -142,98 +272,9 @@
               "RelativeDocumentMoniker": "Repository\\Entities\\Couriers.cs",
               "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Couriers.cs",
               "RelativeToolTip": "Repository\\Entities\\Couriers.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAAwAsAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T21:54:13.897Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Orders.cs",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Orders.cs",
-              "RelativeDocumentMoniker": "Repository\\Entities\\Orders.cs",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Orders.cs",
-              "RelativeToolTip": "Repository\\Entities\\Orders.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAAwAwAAAAhAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T21:55:37.201Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "OrderRepository.cs",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\OrderRepository.cs",
-              "RelativeDocumentMoniker": "Repository\\Repositories\\OrderRepository.cs",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repositories\\OrderRepository.cs",
-              "RelativeToolTip": "Repository\\Repositories\\OrderRepository.cs",
-              "ViewState": "AgIAADgAAAAAAAAAAAAswEIAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T21:39:07.46Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": ".gitignore",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\.gitignore",
-              "RelativeDocumentMoniker": ".gitignore",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\.gitignore",
-              "RelativeToolTip": ".gitignore",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-02-08T21:31:10.763Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Users.cs",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Users.cs",
-              "RelativeDocumentMoniker": "Repository\\Entities\\Users.cs",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Entities\\Users.cs",
-              "RelativeToolTip": "Repository\\Entities\\Users.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAAwA0AAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T20:38:13.957Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "IContext.cs",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Interfaces\\IContext.cs",
-              "RelativeDocumentMoniker": "Repository\\Interfaces\\IContext.cs",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Interfaces\\IContext.cs",
-              "RelativeToolTip": "Repository\\Interfaces\\IContext.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAswAoAAAAKAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T20:26:48.154Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "Repository.csproj",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repository.csproj",
-              "RelativeDocumentMoniker": "Repository\\Repository.csproj",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Repository.csproj",
-              "RelativeToolTip": "Repository\\Repository.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-02-08T20:19:06.062Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "Class1.cs",
-              "DocumentMoniker": "C:\\ShiraProjects\\Yami\\server\\Repository\\Class1.cs",
-              "RelativeDocumentMoniker": "Repository\\Class1.cs",
-              "ToolTip": "C:\\ShiraProjects\\Yami\\server\\Repository\\Class1.cs",
-              "RelativeToolTip": "Repository\\Class1.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T20:18:35.809Z"
+              "WhenOpened": "2026-02-08T21:54:13.897Z"
             }
           ]
         }

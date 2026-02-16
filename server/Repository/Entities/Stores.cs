@@ -6,23 +6,23 @@ namespace Repository.Entities
     public class Stores
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Auto-increment ID
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
-        public int UserId { get; set; }  // Owner of the store
+        public int UserId { get; set; }  // הבעלים של החנות
 
         [ForeignKey("UserId")]
-        public Users Owner { get; set; }  // Navigation property
+        public Users Owner { get; set; }  // קשר ל־Users
 
         [Required]
         public string Name { get; set; }
-
         [Required]
         public string Address { get; set; }
 
-        public string KosherTags { get; set; }  // e.g., "Kosher, Vegan"
-        public string OpenHours { get; set; }   // e.g., "09:00-22:00"
+        public string KosherTags { get; set; }
+        public string OpenHours { get; set; }
         public bool IsOpen { get; set; } = true;
+        public string Phone { get; set; }
     }
 }

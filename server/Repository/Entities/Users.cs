@@ -17,7 +17,8 @@ namespace Repository.Entities
         [Required] public string Email { get; set; }
         public string Phone { get; set; }
         [Required] public string Password { get; set; }
-        public float Latitude { get; set; }  // User location
-        public float Longitude { get; set; } // User location
+
+        public float Latitude { get; set; }
+        public float Longitude { get; set; }
     }
 }

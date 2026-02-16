@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Yami")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+104155fdb8b17d50f84dd106a62992a19baed1e8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+be69a89e8c0747a19acd30467160c3b78dca0003")]
 [assembly: System.Reflection.AssemblyProductAttribute("Yami")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Yami")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

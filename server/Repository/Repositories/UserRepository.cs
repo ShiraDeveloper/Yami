@@ -12,6 +12,7 @@ namespace Repository.Repositories
     internal class UserRepository:IRepository<Users>
     {
         private readonly IContext ctx;
+
         public UserRepository(IContext context) {
             ctx=context;    
         }
