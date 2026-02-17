@@ -1,0 +1,6 @@
+@Yami_HostAddress = http://localhost:5056
+
+GET {{Yami_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
