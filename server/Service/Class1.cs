@@ -1,4 +1,4 @@
-﻿namespace Service
+﻿namespace Service1
 {
     public class Class1
     {

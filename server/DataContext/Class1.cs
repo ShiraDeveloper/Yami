@@ -1,4 +1,4 @@
-﻿namespace YamiDbContext
+﻿namespace DataContext1
 {
     public class Class1
     {
