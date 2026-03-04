@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
+using DataContext;
 
 namespace Yami
 {
@@ -17,9 +18,11 @@ namespace Yami
             builder.Services.AddControllers();
 
             // ===== חיבור למסד נתונים =====
-            builder.Services.AddDbContext<DbContext>(options =>
+            builder.Services.AddDbContext<YamiDbContext>(options =>
                 options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("DefaultConnection")));
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    b => b.MigrationsAssembly("Yami") // <- שמי הפרויקט שבו נמצאות המיגרציות
+                ));
 
             // ===== Swagger =====
             builder.Services.AddEndpointsApiExplorer();
