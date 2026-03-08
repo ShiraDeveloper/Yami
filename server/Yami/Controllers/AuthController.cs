@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Repository.Entities;
+using Repository.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -12,24 +13,35 @@ namespace Yami.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly IRepository<User> _userRepository;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IConfiguration configuration, IRepository<User> userRepository)
         {
             _configuration = configuration;
+            _userRepository = userRepository;
         }
 
         public record LoginRequest(string Email, string Password);
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
             {
                 return BadRequest(new { error = "Missing credentials" });
             }
 
-            // בדיקה לדוגמה בלבד
-            if (request.Email != "admin@local" || request.Password != "password")
+            // חיפוש המשתמש ב-DB לפי אימייל
+            var user = (await _userRepository.GetAll())
+                .FirstOrDefault(u => u.Email.Equals(request.Email, StringComparison.OrdinalIgnoreCase));
+
+            if (user == null)
+            {
+                return Unauthorized(new { error = "Invalid credentials" });
+            }
+
+            // בדיקת סיסמה – כאן בדיקה פשוטה, בפועל יש להשתמש ב-Hash
+            if (user.Password != request.Password)
             {
                 return Unauthorized(new { error = "Invalid credentials" });
             }
@@ -37,8 +49,8 @@ namespace Yami.Controllers
             // ===== יצירת Claims =====
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, request.Email),
-                new Claim(ClaimTypes.Role, "Admin")
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString()) // Role מה-DB
             };
 
             // ===== יצירת מפתח חתימה =====

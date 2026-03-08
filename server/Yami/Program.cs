@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
 using System.Text;
 using DataContext;
+using Repository.Entities;
+using Repository.Interfaces;
+using Repository.Repositories;
 
 namespace Yami
 {
@@ -14,14 +16,14 @@ namespace Yami
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Controllers
+            // ===== Controllers =====
             builder.Services.AddControllers();
 
             // ===== חיבור למסד נתונים =====
             builder.Services.AddDbContext<YamiDbContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly("Yami") // <- שמי הפרויקט שבו נמצאות המיגרציות
+                    b => b.MigrationsAssembly("Yami") // שם הפרויקט עם המיגרציות
                 ));
 
             // ===== Swagger =====
@@ -75,9 +77,21 @@ namespace Yami
                             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
                     };
                 });
+            builder.Services.AddScoped<IContext, YamiDbContext>();
+
+            // ===== Repositories - Dependency Injection =====
+            builder.Services.AddScoped<IRepository<Store>, StoreRepository>();
+            builder.Services.AddScoped<IRepository<User>, UserRepository>();
+            builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
+            builder.Services.AddScoped<IRepository<Menu>, MenusRepository>();
+            builder.Services.AddScoped<IRepository<Delivery>, DeliveryRepository>();
+            builder.Services.AddScoped<IRepository<DeliveryOrder>, DeliveryOrderRepository>();
+            builder.Services.AddScoped<IRepository<DeliveryOffer>, DeliveryOfferRepository>();
+            builder.Services.AddScoped<IRepository<CourierTracking>, CourierTrackingRepository>();
 
             var app = builder.Build();
 
+            // ===== Middleware =====
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

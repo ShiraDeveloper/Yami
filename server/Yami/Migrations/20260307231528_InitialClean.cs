@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Yami.Migrations.YamiDb
+namespace Yami.Migrations
 {
     /// <inheritdoc />
-    public partial class FinalCleanModel : Migration
+    public partial class InitialClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -110,7 +110,7 @@ namespace Yami.Migrations.YamiDb
                     StoreId = table.Column<int>(type: "int", nullable: false),
                     ItemName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Category = table.Column<int>(type: "int", nullable: true),
                     Volume = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
@@ -193,7 +193,7 @@ namespace Yami.Migrations.YamiDb
                 });
 
             migrationBuilder.CreateTable(
-                name: "DeliveryOrder",
+                name: "DeliveryOffer",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -207,15 +207,15 @@ namespace Yami.Migrations.YamiDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DeliveryOrder", x => x.Id);
+                    table.PrimaryKey("PK_DeliveryOffer", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DeliveryOrder_Delivery_DeliveryId",
+                        name: "FK_DeliveryOffer_Delivery_DeliveryId",
                         column: x => x.DeliveryId,
                         principalTable: "Delivery",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DeliveryOrder_Orders_OrderId",
+                        name: "FK_DeliveryOffer_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "Id",
@@ -270,9 +270,9 @@ namespace Yami.Migrations.YamiDb
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_DeliveryOffers_DeliveryOrder_DeliveryOrderId",
+                        name: "FK_DeliveryOffers_DeliveryOffer_DeliveryOrderId",
                         column: x => x.DeliveryOrderId,
-                        principalTable: "DeliveryOrder",
+                        principalTable: "DeliveryOffer",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -299,6 +299,16 @@ namespace Yami.Migrations.YamiDb
                 column: "CourierId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DeliveryOffer_DeliveryId",
+                table: "DeliveryOffer",
+                column: "DeliveryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveryOffer_OrderId",
+                table: "DeliveryOffer",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DeliveryOffers_CourierId",
                 table: "DeliveryOffers",
                 column: "CourierId");
@@ -307,16 +317,6 @@ namespace Yami.Migrations.YamiDb
                 name: "IX_DeliveryOffers_DeliveryOrderId",
                 table: "DeliveryOffers",
                 column: "DeliveryOrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DeliveryOrder_DeliveryId",
-                table: "DeliveryOrder",
-                column: "DeliveryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DeliveryOrder_OrderId",
-                table: "DeliveryOrder",
-                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Menus_StoreId",
@@ -373,7 +373,7 @@ namespace Yami.Migrations.YamiDb
                 name: "OrderItem");
 
             migrationBuilder.DropTable(
-                name: "DeliveryOrder");
+                name: "DeliveryOffer");
 
             migrationBuilder.DropTable(
                 name: "Menus");

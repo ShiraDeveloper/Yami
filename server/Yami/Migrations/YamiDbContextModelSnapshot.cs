@@ -4,19 +4,16 @@ using DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Yami.Migrations.YamiDb
+namespace Yami.Migrations
 {
     [DbContext(typeof(YamiDbContext))]
-    [Migration("20260304205804_FinalCleanModel")]
-    partial class FinalCleanModel
+    partial class YamiDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,7 +170,7 @@ namespace Yami.Migrations.YamiDb
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("DeliveryOrder");
+                    b.ToTable("DeliveryOffer");
                 });
 
             modelBuilder.Entity("Menu", b =>
@@ -184,8 +181,8 @@ namespace Yami.Migrations.YamiDb
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("Category")
+                        .HasColumnType("int");
 
                     b.Property<string>("ItemName")
                         .IsRequired()
