@@ -23,7 +23,7 @@ namespace Yami
             builder.Services.AddDbContext<YamiDbContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly("Yami") // שם הפרויקט עם המיגרציות
+                    b => b.MigrationsAssembly("Yami")
                 ));
 
             // ===== Swagger =====
@@ -77,6 +77,18 @@ namespace Yami
                             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
                     };
                 });
+
+            // ===== CORS =====
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactDev", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173") // כתובת ה-React Dev
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddScoped<IContext, YamiDbContext>();
 
             // ===== Repositories - Dependency Injection =====
@@ -99,6 +111,9 @@ namespace Yami
             }
 
             app.UseHttpsRedirection();
+
+            // ===== שימוש ב-CORS =====
+            app.UseCors("AllowReactDev");
 
             // סדר חשוב
             app.UseAuthentication();
