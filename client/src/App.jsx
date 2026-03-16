@@ -1,21 +1,17 @@
-import React, { useState } from 'react';
-import './App.css';
-import Auth from './components/Auth';
-import StoreMenu from './components/StoreMenu';
-import Login from './pages/Login';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Stores from "./pages/Stores";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   return (
-    <div className="App" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-      {/* {!isLoggedIn ? (
-        <Auth onLogin={() => setIsLoggedIn(true)} />
-      ) : (
-        <StoreMenu storeId={1} customerId={123} />
-      )} */}
-          <Login></Login>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/stores" element={<Stores />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

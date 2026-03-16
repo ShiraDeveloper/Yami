@@ -1,48 +1,57 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Register() {
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
+  const location = useLocation();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // מילוי אוטומטי של המייל
+  useEffect(() => {
+    if (location.state?.email) {
+      setEmail(location.state.email);
+    }
+  }, [location.state]);
+  const handleRegister = async (e) => {
     e.preventDefault();
 
-    setError("");
     setLoading(true);
+    setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/Auth/login`,
+        `${import.meta.env.VITE_API_URL}/api/Users/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ name, email, password }),
         }
       );
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError(data.message || "User not found");
-
-        // מעבר ל-Register עם המייל
-        navigate("/register", { state: { email } });
-
+        setError(data.error || "Registration failed");
         return;
       }
 
-      localStorage.setItem("token", data.token);
+      setSuccess("Registration successful!");
 
-      navigate("/stores");
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
 
     } catch {
-      setError("Server connection error");
+      setError("Network error");
     } finally {
       setLoading(false);
     }
@@ -50,10 +59,20 @@ export default function Login() {
 
   return (
     <div style={styles.container}>
-      <form onSubmit={handleLogin} style={styles.form}>
-        <h2>Login</h2>
+      <form onSubmit={handleRegister} style={styles.form}>
+        <h2>Register</h2>
 
         {error && <p style={styles.error}>{error}</p>}
+        {success && <p style={styles.success}>{success}</p>}
+
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={styles.input}
+          required
+        />
 
         <input
           type="email"
@@ -74,16 +93,17 @@ export default function Login() {
         />
 
         <button type="submit" style={styles.button}>
-          {loading ? "Loading..." : "Login"}
+          {loading ? "Loading..." : "Register"}
         </button>
 
-        <p style={styles.link} onClick={() => navigate("/register")}>
-          Don't have an account? Register
+        <p style={styles.link} onClick={() => navigate("/")}>
+          Already have an account? Login
         </p>
       </form>
     </div>
   );
 }
+
 const styles = {
   container: {
     display: "flex",
@@ -108,6 +128,9 @@ const styles = {
   },
   error: {
     color: "red",
+  },
+  success: {
+    color: "green",
   },
   link: {
     cursor: "pointer",
