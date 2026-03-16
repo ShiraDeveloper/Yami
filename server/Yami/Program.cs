@@ -7,6 +7,9 @@ using DataContext;
 using Repository.Entities;
 using Repository.Interfaces;
 using Repository.Repositories;
+using Service.Interfaces;
+using Service.Services;
+using Service.Implementations;
 
 namespace Yami
 {
@@ -30,11 +33,7 @@ namespace Yami
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Yami API",
-                    Version = "v1"
-                });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Yami API", Version = "v1" });
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -70,7 +69,6 @@ namespace Yami
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-
                         ValidIssuer = builder.Configuration["Jwt:Issuer"],
                         ValidAudience = builder.Configuration["Jwt:Audience"],
                         IssuerSigningKey = new SymmetricSecurityKey(
@@ -83,19 +81,28 @@ namespace Yami
             {
                 options.AddPolicy("AllowReactDev", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173") // כתובת ה-React Dev
+                    policy.WithOrigins("http://localhost:5173")
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
             });
 
+            // ===== DbContext =====
             builder.Services.AddScoped<IContext, YamiDbContext>();
 
-            // ===== Repositories - Dependency Injection =====
-            builder.Services.AddScoped<IRepository<Store>, StoreRepository>();
+            // ===== Services =====
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IMenuService, MenuService>();
+            builder.Services.AddScoped<IStoreService, StoreService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
+            // ===== Repositories =====
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IRepository<User>, UserRepository>();
-            builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
+
             builder.Services.AddScoped<IRepository<Menu>, MenusRepository>();
+            builder.Services.AddScoped<IRepository<Store>, StoreRepository>();
+            builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
             builder.Services.AddScoped<IRepository<Delivery>, DeliveryRepository>();
             builder.Services.AddScoped<IRepository<DeliveryOrder>, DeliveryOrderRepository>();
             builder.Services.AddScoped<IRepository<DeliveryOffer>, DeliveryOfferRepository>();
@@ -112,10 +119,8 @@ namespace Yami
 
             app.UseHttpsRedirection();
 
-            // ===== שימוש ב-CORS =====
             app.UseCors("AllowReactDev");
 
-            // סדר חשוב
             app.UseAuthentication();
             app.UseAuthorization();
 

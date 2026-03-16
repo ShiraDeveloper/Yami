@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using Repository.Entities;
-using Repository.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using Service.Interfaces;
 
 namespace Yami.Controllers
 {
@@ -12,13 +7,11 @@ namespace Yami.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly IRepository<User> _userRepository;
+        private readonly IAuthService _authService;
 
-        public AuthController(IConfiguration configuration, IRepository<User> userRepository)
+        public AuthController(IAuthService authService)
         {
-            _configuration = configuration;
-            _userRepository = userRepository;
+            _authService = authService;
         }
 
         public record LoginRequest(string Email, string Password);
@@ -26,50 +19,12 @@ namespace Yami.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
-            {
-                return BadRequest(new { error = "Missing credentials" });
-            }
+            var token = await _authService.Login(request.Email, request.Password);
 
-            // חיפוש המשתמש ב-DB לפי אימייל
-            var user = (await _userRepository.GetAll())
-                .FirstOrDefault(u => u.Email.Equals(request.Email, StringComparison.OrdinalIgnoreCase));
-
-            if (user == null)
-            {
+            if (token == null)
                 return Unauthorized(new { error = "Invalid credentials" });
-            }
 
-            // בדיקת סיסמה – כאן בדיקה פשוטה, בפועל יש להשתמש ב-Hash
-            if (user.Password != request.Password)
-            {
-                return Unauthorized(new { error = "Invalid credentials" });
-            }
-
-            // ===== יצירת Claims =====
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.Role, user.Role.ToString()) // Role מה-DB
-            };
-
-            // ===== יצירת מפתח חתימה =====
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            // ===== יצירת הטוקן =====
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: creds);
-
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return Ok(new { token = tokenString });
+            return Ok(new { token });
         }
     }
 }

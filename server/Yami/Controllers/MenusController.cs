@@ -1,36 +1,28 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Entities;
-using Repository.Interfaces;
 using Common.Dto;
-using Repository.Repositories;
+using Service.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class MenuController : ControllerBase
     {
-        private readonly IRepository<Menu> _menuRepository;
-        private readonly IRepository<Store> _storeRepository;
+        private readonly IMenuService _menuService;
 
-        public MenuController(IRepository<Menu> menuRepository, IRepository<Store> storeRepository)
+        public MenuController(IMenuService menuService)
         {
-            _menuRepository = menuRepository;
-            _storeRepository = storeRepository;
+            _menuService = menuService;
         }
 
-        // ==========================
-        // CRUD – רק מנהלים
-        // ==========================
         [HttpPost]
-        [Authorize(Roles = "Admin")] // רק מנהל יכול להוסיף מוצר
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Menu>> CreateMenu([FromBody] MenuCreateDto dto)
         {
-            // בדיקה אם החנות קיימת
-            var store = await _storeRepository.GetById(dto.StoreId);
-            if (store == null)
-                return BadRequest($"Store with ID {dto.StoreId} does not exist.");
-
             var menu = new Menu
             {
                 StoreId = dto.StoreId,
@@ -40,63 +32,49 @@ namespace API.Controllers
                 Volume = dto.Volume
             };
 
-            await _menuRepository.Add(menu);
-
-            // מחזיר 201 Created עם ה‑ID של המוצר החדש
-            return CreatedAtAction(nameof(GetMenuById), new { id = menu.Id }, menu);
+            var result = await _menuService.Add(menu);
+            return CreatedAtAction(nameof(GetMenuById), new { id = result.Id }, result);
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")] // רק מנהל יכול לקרוא לפעולה זו
-        public async Task<IActionResult> UpdateMenu(int id, [FromBody] MenuUpdateDto menuDto)
-        {
-            // שליפת המוצר מה‑DB לפי ID
-            var menu = await _menuRepository.GetById(id);
-            if (menu == null)
-                return NotFound($"Menu with ID {id} not found.");
-
-            // עדכון השדות הרצויים
-            menu.ItemName = menuDto.ItemName;
-            menu.Price = menuDto.Price;
-            menu.Category = menuDto.Category;
-            menu.Volume = menuDto.Volume;
-
-            await _menuRepository.Update(menu); // שמירה במסד
-            return Ok(menu);
-        }
         [Authorize(Roles = "Admin")]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteMenu(int id)
+        public async Task<IActionResult> UpdateMenu(int id, [FromBody] MenuUpdateDto dto)
         {
-            var deleted = await _menuRepository.Delete(id);
+            var menu = new Menu
+            {
+                ItemName = dto.ItemName,
+                Price = dto.Price,
+                Category = dto.Category,
+                Volume = dto.Volume
+            };
+
+            var updated = await _menuService.Update(id, menu);
+            if (updated == null) return NotFound($"Menu with ID {id} not found.");
+            return Ok(updated);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteMenu(int id)
+        {
+            var deleted = await _menuService.Delete(id);
             if (deleted == null) return NotFound();
             return NoContent();
         }
-
-        // ==========================
-        // קריאה / חיפוש
-        // ==========================
 
         [HttpGet]
         public async Task<ActionResult<List<Menu>>> GetMenus(
             [FromQuery] string? search = null,
             [FromQuery] MenuCategory? category = null)
         {
-            var menus = await _menuRepository.GetAll();
-
-            if (!string.IsNullOrEmpty(search))
-                menus = menus.Where(m => m.ItemName.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            if (category.HasValue)
-                menus = menus.Where(m => m.Category == category).ToList();
-
+            var menus = await _menuService.SearchMenus(search, category);
             return Ok(menus);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Menu>> GetMenuById(int id)
         {
-            var menu = await _menuRepository.GetById(id);
+            var menu = await _menuService.GetById(id);
             if (menu == null) return NotFound();
             return Ok(menu);
         }
