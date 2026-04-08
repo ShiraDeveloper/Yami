@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Repository.Entities;
 using Service.Interfaces;
 
@@ -16,72 +15,33 @@ namespace API.Controllers
             _userService = userService;
         }
 
-        // ==========================
-        // Register
-        // ==========================
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
-        {
-            try
-            {
-                var user = new User
-                {
-                    Name = request.Name,
-                    Email = request.Email,
-                    Password = request.Password,
-                    Role = Role.Customer
-                };
-
-                var result = await _userService.Add(user);
-
-                return Ok(new
-                {
-                    message = "Registration successful.",
-                    userId = result.Id
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
-
-        // ==========================
-        // Update
-        // ==========================
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
-        {
-            try
-            {
-                var user = new User
-                {
-                    Name = request.Name,
-                    Email = request.Email,
-                    Password = request.Password,
-                    Phone = request.Phone
-                };
-
-                var updated = await _userService.Update(id, user);
-                return Ok(updated);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
-
-        // ==========================
-        // Get by Id
-        // ==========================
+        // GET BY ID
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var user = await _userService.GetById(id);
-            return Ok(user);
+            return Ok(await _userService.GetById(id));
         }
 
-        public record RegisterRequest(string Name, string Email, string Password);
-        public record UpdateUserRequest(string? Name, string? Email, string? Password, string? Phone);
+        // GET ALL
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            return Ok(await _userService.GetAll());
+        }
+
+        // UPDATE
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] User user)
+        {
+            var result = await _userService.Update(id, user);
+            return Ok(result);
+        }
+
+        // DELETE
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            return Ok(await _userService.Delete(id));
+        }
     }
 }

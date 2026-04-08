@@ -3,8 +3,8 @@ using Service.Interfaces;
 
 namespace Yami.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -19,12 +19,15 @@ namespace Yami.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var token = await _authService.Login(request.Email, request.Password);
-
-            if (token == null)
-                return Unauthorized(new { error = "Invalid credentials" });
-
-            return Ok(new { token });
+            try
+            {
+                var token = await _authService.Login(request.Email, request.Password);
+                return Ok(new { token });
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { error = ex.Message });
+            }
         }
     }
 }
