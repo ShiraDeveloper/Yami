@@ -8,6 +8,12 @@ public class CourierController : ControllerBase
 {
     private readonly CourierMatchingService _courierService;
     private readonly IRepository<Courier> _courierRepository;
+    private readonly ITrackingService _trackingService;
+
+    public CourierController(ITrackingService trackingService)
+    {
+        _trackingService = trackingService;
+    }
 
     public CourierController(
         CourierMatchingService courierService,
@@ -50,5 +56,12 @@ public class CourierController : ControllerBase
         var route = _courierService.BuildRoute(courier, newLat, newLng);
 
         return Ok(route);
+    }
+
+    [HttpPost("update-location")]
+    public async Task<IActionResult> UpdateLocation([FromBody] LocationDto dto)
+    {
+        await _trackingService.UpdateLocation(dto.CourierId, dto.Latitude, dto.Longitude);
+        return Ok();
     }
 }

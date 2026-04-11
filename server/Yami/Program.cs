@@ -91,6 +91,8 @@ namespace Yami
             builder.Services.AddScoped<IContext, YamiDbContext>();
 
             // ===== Services =====
+            builder.Services.AddScoped<IRepository<Courier>, CouriersRepository>();
+            builder.Services.AddScoped<CourierMatchingService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IMenuService, MenuService>();
             builder.Services.AddScoped<IStoreService, StoreService>();
@@ -107,8 +109,14 @@ namespace Yami
             builder.Services.AddScoped<IRepository<DeliveryOrder>, DeliveryOrderRepository>();
             builder.Services.AddScoped<IRepository<DeliveryOffer>, DeliveryOfferRepository>();
             builder.Services.AddScoped<IRepository<CourierTracking>, CourierTrackingRepository>();
-
+            builder.Services.AddSignalR();
             var app = builder.Build();
+
+            //SignalR-for hubs to follow courier location in real time
+            
+
+            app.MapHub<TrackingHub>("/trackingHub");
+
 
             // ===== Middleware =====
             if (app.Environment.IsDevelopment())
@@ -116,6 +124,7 @@ namespace Yami
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
 
             app.UseHttpsRedirection();
 
