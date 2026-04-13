@@ -18,7 +18,7 @@ namespace API.Controllers
             _orderService = orderService;
         }
 
-        // ================= 1. יצירת הזמנה =================
+        // ================= יצירת הזמנה =================
 
         [HttpPost]
         [Authorize(Roles = "Customer")]
@@ -28,10 +28,22 @@ namespace API.Controllers
             {
                 var userId = int.Parse(User.FindFirst("id")!.Value);
 
-                var result = await _orderService.CreateOrder(userId, dto);
+                var order = await _orderService.CreateOrder(userId, dto);
 
-                if (result == null)
+                if (order == null)
                     return BadRequest("No available courier found");
+
+                var result = new OrderDto
+                {
+                    Id = order.Id,
+                    StoreId = order.StoreId,
+                    Status = order.Status.ToString(),
+                    OrderItems = order.OrderItems?.Select(i => new OrderItemDto
+                    {
+                        MenuId = i.MenuId,
+                        Quantity = i.Quantity
+                    }).ToList()
+                };
 
                 return Ok(result);
             }
@@ -41,7 +53,7 @@ namespace API.Controllers
             }
         }
 
-        // ================= 2. הזמנות של המשתמש =================
+        // ================= הזמנות שלי =================
 
         [HttpGet("my-orders")]
         [Authorize(Roles = "Customer")]
@@ -53,44 +65,19 @@ namespace API.Controllers
 
                 var orders = await _orderService.GetAll();
 
-                var userOrders = orders.Where(o => o.CustomerId == userId);
-
-                return Ok(userOrders);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        // ================= 3. כל ההזמנות =================
-
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
-        {
-            try
-            {
-                var orders = await _orderService.GetAll();
-                return Ok(orders);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        // ================= 4. שליח לוקח הזמנה =================
-
-        [HttpPut("{orderId}/assign")]
-        [Authorize(Roles = "Courier")]
-        public async Task<IActionResult> AssignToMe(int orderId)
-        {
-            try
-            {
-                var courierId = int.Parse(User.FindFirst("id")!.Value);
-
-                var result = await _orderService.AssignCourier(orderId, courierId);
+                var result = orders
+                    .Where(o => o.CustomerId == userId)
+                    .Select(o => new OrderDto
+                    {
+                        Id = o.Id,
+                        StoreId = o.StoreId,
+                        Status = o.Status.ToString(),
+                        OrderItems = o.OrderItems.Select(i => new OrderItemDto
+                        {
+                            MenuId = i.MenuId,
+                            Quantity = i.Quantity
+                        }).ToList()
+                    });
 
                 return Ok(result);
             }
@@ -100,7 +87,62 @@ namespace API.Controllers
             }
         }
 
-        // ================= 5. שליח דוחה הזמנה (Reject + Reassign) =================
+        // ================= כל ההזמנות =================
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                var orders = await _orderService.GetAll();
+
+                var result = orders.Select(o => new OrderDto
+                {
+                    Id = o.Id,
+                    StoreId = o.StoreId,
+                    Status = o.Status.ToString(),
+                    OrderItems = o.OrderItems.Select(i => new OrderItemDto
+                    {
+                        MenuId = i.MenuId,
+                        Quantity = i.Quantity
+                    }).ToList()
+                });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // ================= שליח לוקח =================
+
+        [HttpPut("{orderId}/assign")]
+        [Authorize(Roles = "Delivery")]
+        public async Task<IActionResult> AssignToMe(int orderId)
+        {
+            try
+            {
+                var courierId = int.Parse(User.FindFirst("id")!.Value);
+
+                var order = await _orderService.AssignCourier(orderId, courierId);
+
+                return Ok(new OrderDto
+                {
+                    Id = order.Id,
+                    StoreId = order.StoreId,
+                    Status = order.Status.ToString()
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // ================= דחייה =================
 
         [HttpPut("{orderId}/reject")]
         [Authorize(Roles = "Courier")]
@@ -110,9 +152,14 @@ namespace API.Controllers
             {
                 var courierId = int.Parse(User.FindFirst("id")!.Value);
 
-                var result = await _orderService.RejectAndReassign(orderId, courierId);
+                var order = await _orderService.RejectAndReassign(orderId, courierId);
 
-                return Ok(result);
+                return Ok(new OrderDto
+                {
+                    Id = order.Id,
+                    StoreId = order.StoreId,
+                    Status = order.Status.ToString()
+                });
             }
             catch (Exception ex)
             {
@@ -120,7 +167,7 @@ namespace API.Controllers
             }
         }
 
-        // ================= 6. עדכון סטטוס =================
+        // ================= עדכון סטטוס =================
 
         [HttpPut("{orderId}/status")]
         [Authorize(Roles = "Admin")]
@@ -131,9 +178,14 @@ namespace API.Controllers
                 var userId = int.Parse(User.FindFirst("id")!.Value);
                 var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
 
-                var result = await _orderService.UpdateStatus(orderId, status, userId, role);
+                var order = await _orderService.UpdateStatus(orderId, status, userId, role);
 
-                return Ok(result);
+                return Ok(new OrderDto
+                {
+                    Id = order.Id,
+                    StoreId = order.StoreId,
+                    Status = order.Status.ToString()
+                });
             }
             catch (Exception ex)
             {

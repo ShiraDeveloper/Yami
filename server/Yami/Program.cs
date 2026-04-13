@@ -91,6 +91,8 @@ namespace Yami
             builder.Services.AddScoped<IContext, YamiDbContext>();
 
             // ===== Services =====
+            builder.Services.AddScoped<ITrackingService, TrackingService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IRepository<Courier>, CouriersRepository>();
             builder.Services.AddScoped<CourierMatchingService>();
             builder.Services.AddScoped<IUserService, UserService>();

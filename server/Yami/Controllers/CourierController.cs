@@ -2,6 +2,8 @@
 using Common.Dto;
 using Repository.Interfaces;
 
+namespace API.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 public class CourierController : ControllerBase
@@ -10,17 +12,14 @@ public class CourierController : ControllerBase
     private readonly IRepository<Courier> _courierRepository;
     private readonly ITrackingService _trackingService;
 
-    public CourierController(ITrackingService trackingService)
-    {
-        _trackingService = trackingService;
-    }
-
     public CourierController(
         CourierMatchingService courierService,
-        IRepository<Courier> courierRepository)
+        IRepository<Courier> courierRepository,
+        ITrackingService trackingService)
     {
         _courierService = courierService;
         _courierRepository = courierRepository;
+        _trackingService = trackingService;
     }
 
     // ================= 1. מציאת שליח =================
@@ -38,7 +37,7 @@ public class CourierController : ControllerBase
         return Ok(courierId);
     }
 
-    // ================= 2. קבלת מסלול (WAZE STYLE) =================
+    // ================= 2. מסלול שליח =================
 
     [HttpGet("route/{courierId}")]
     public async Task<ActionResult<CourierRouteDto>> GetRoute(
@@ -58,10 +57,25 @@ public class CourierController : ControllerBase
         return Ok(route);
     }
 
+    // ================= 3. עדכון מיקום =================
+
     [HttpPost("update-location")]
-    public async Task<IActionResult> UpdateLocation([FromBody] LocationDto dto)
+    public async Task<IActionResult> UpdateLocation([FromBody] CourierTrackingCreateDto dto)
     {
-        await _trackingService.UpdateLocation(dto.CourierId, dto.Latitude, dto.Longitude);
+        await _trackingService.UpdateLocation(dto);
         return Ok();
+    }
+
+    // ================= 4. קבלת מיקום לפי הזמנה =================
+
+    [HttpGet("order/{orderId}/location")]
+    public async Task<IActionResult> GetOrderLocation(int orderId)
+    {
+        var result = await _trackingService.GetLocationByOrder(orderId);
+
+        if (result == null)
+            return NotFound("No tracking data found");
+
+        return Ok(result);
     }
 }
