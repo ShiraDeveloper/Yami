@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    internal class UserRepository:IRepository<Users>
+    public class UserRepository : IRepository<User>, IUserRepository
     {
         private readonly IContext ctx;
 
@@ -17,7 +17,7 @@ namespace Repository.Repositories
             ctx=context;    
         }
 
-        public async Task<Users> Add(Users user)
+        public async Task<User> Add(User user)
         {
             ctx.Users.Add(user);
             await ctx.Save();
@@ -25,7 +25,7 @@ namespace Repository.Repositories
 
         }
 
-        public async Task<Users> Delete(int id)
+        public async Task<User> Delete(int id)
         {
             var u = await ctx.Users.FirstOrDefaultAsync(x => x.Id == id);
             if (u != null)
@@ -37,21 +37,37 @@ namespace Repository.Repositories
             return null;
         }
 
-        public Task<List<Users>> GetAll()
+        public Task<List<User>> GetAll()
         {
             return ctx.Users.ToListAsync();
         }
 
-        public async Task<Users> GetById(int id)
+            public async Task<User?> GetByEmail(string email)
+            {
+                return await ctx.Users
+                    .FirstOrDefaultAsync(u => u.Email == email);
+            }
+
+        public async Task<User> GetById(int id)
         {
             return await ctx.Users.FirstOrDefaultAsync(x => x.Id == id);    
         }
 
-        public async Task<Users> Update(Users user)
+        public async Task<List<User>> GetCouriers()
+        {
+            return await ctx.Users
+                .Where(u => u.Role == Role.Delivery)
+                .ToListAsync();
+        }
+        public async Task<User> Update(User user)
         {
             var existingUser = await ctx.Users.FirstOrDefaultAsync(x => x.Id == user.Id);
             if (existingUser == null)
                 return null;
+            existingUser.Id= user.Id;
+            existingUser.Role= user.Role;
+            existingUser.CourierProfile= user.CourierProfile;
+            existingUser.Orders= user.Orders;
             existingUser.Longitude = user.Longitude;
             existingUser.Latitude = user.Latitude;
             existingUser.Name = user.Name;

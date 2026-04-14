@@ -1,30 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Repository.Entities;
 
-namespace Repository.Entities
+public enum DeliveryOrderStatus
 {
-    public class DeliveryOrder
-    {
-        public int Id { get; set; }
+    Pending,
+    PickedUp,
+    Delivered
+}
 
-        public int DeliveryId { get; set; }
-        public Delivery Delivery { get; set; }
+public class DeliveryOrder
+{
+    public int Id { get; set; }
 
-        public int OrderId { get; set; }
-        public Orders Order { get; set; }
-        public bool IsOffered { get; set; }
-        public List<int> RefusedBy { get; set; } = new List<int>();
-        public double DistanceFromPreviousStop { get; set; }
+    public int DeliveryId { get; set; }
+    public Delivery Delivery { get; set; }
 
-        // אלגוריתם מסלול
-        public int DropOrderIndex { get; set; }
+    public int OrderId { get; set; }
+    public Order Order { get; set; }
 
-        // מעקב בפועל
-        public DateTime? DeliveredTime { get; set; }
+    public int StopIndex { get; set; }  // מיקום העצירה במסלול
 
-        public string Status { get; set; }
-    }
+    public double DistanceFromPreviousStop { get; set; } // מרחק מהעצירה הקודמת
+
+    public DateTime? DeliveredTime { get; set; }  // אופציונלי: ייתכן שההזמנה עדיין לא נמסרה
+
+    public DeliveryOrderStatus Status { get; set; } = DeliveryOrderStatus.Pending; // ברירת מחדל
+    public ICollection<DeliveryOffer>? DeliveryOffers { get; set; }
 }

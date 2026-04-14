@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    internal class DeliveryOrderRepository : IRepository<DeliveryOrder>
+    public class DeliveryOrderRepository : IRepository<DeliveryOrder>
     {
         private readonly IContext ctx;
         public DeliveryOrderRepository(IContext context)
@@ -18,17 +18,17 @@ namespace Repository.Repositories
         }
         public async Task<DeliveryOrder> Add(DeliveryOrder entity)
         {
-            ctx.DeliveryOrder.Add(entity);
+            ctx.DeliveryOffer.Add(entity);
             await ctx.Save();
             return entity;
         }
 
         public async Task<DeliveryOrder> Delete(int id)
         {
-            var d = await ctx.DeliveryOrder.FirstOrDefaultAsync(x => x.Id == id);
+            var d = await ctx.DeliveryOffer.FirstOrDefaultAsync(x => x.Id == id);
             if (d != null)
             {
-                ctx.DeliveryOrder.Remove(d);
+                ctx.DeliveryOffer.Remove(d);
                 await ctx.Save();
                 return d;
             }
@@ -37,31 +37,28 @@ namespace Repository.Repositories
 
         public Task<List<DeliveryOrder>> GetAll()
         {
-            return ctx.DeliveryOrder.ToListAsync();
+            return ctx.DeliveryOffer.ToListAsync();
         }
 
         public async Task<DeliveryOrder> GetById(int id)
         {
-            return await ctx.DeliveryOrder.FirstOrDefaultAsync(x => x.Id == id);
+            return await ctx.DeliveryOffer.FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<DeliveryOrder> Update(DeliveryOrder entity)
         {
-            var existingDeliveryOrder = await ctx.DeliveryOrder.FirstOrDefaultAsync(x => x.Id == entity.Id);
+            var existingDeliveryOrder = await ctx.DeliveryOffer.FirstOrDefaultAsync(x => x.Id == entity.Id);
             if (existingDeliveryOrder == null)
                 return null;
             existingDeliveryOrder.Id = entity.Id;
             existingDeliveryOrder.DeliveryId = entity.DeliveryId;
-            existingDeliveryOrder.OrderId = entity.OrderId;
-            existingDeliveryOrder.IsOffered = entity.IsOffered;
-            existingDeliveryOrder.RefusedBy = entity.RefusedBy;
-            existingDeliveryOrder.DistanceFromPreviousStop = entity.DistanceFromPreviousStop;
-            existingDeliveryOrder.DropOrderIndex = entity.DropOrderIndex;
-            existingDeliveryOrder.Status = entity.Status;
-            existingDeliveryOrder.DeliveredTime = entity.DeliveredTime; 
             existingDeliveryOrder.Delivery = entity.Delivery;
+            existingDeliveryOrder.OrderId = entity.OrderId;
             existingDeliveryOrder.Order = entity.Order;
-            existingDeliveryOrder.DropOrderIndex = entity.DropOrderIndex;
+            existingDeliveryOrder.StopIndex = entity.StopIndex;
+            existingDeliveryOrder.DistanceFromPreviousStop = entity.DistanceFromPreviousStop;
+            existingDeliveryOrder.DeliveredTime = entity.DeliveredTime; 
+            existingDeliveryOrder.Status = entity.Status;
             await ctx.Save();
             return existingDeliveryOrder;
         }

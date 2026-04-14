@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    internal class OrderItemRepository : IRepository<OrderItem>
+    public class OrderItemRepository : IRepository<OrderItem>
     {
         private readonly IContext ctx;
         public OrderItemRepository(IContext context)
@@ -51,12 +51,11 @@ namespace Repository.Repositories
             var existingOrderItem = await ctx.OrderItem.FirstOrDefaultAsync(x => x.Id == entity.Id);
             if (existingOrderItem == null)
                 return null;
-            existingOrderItem.OrderId = entity.OrderId;
-            existingOrderItem.Quantity = entity.Quantity;
             existingOrderItem.Id = entity.Id;
             existingOrderItem.OrderId = entity.OrderId;
-            existingOrderItem.MenuItemId = entity.MenuItemId;
             existingOrderItem.Order = entity.Order;
+            existingOrderItem.Quantity = entity.Quantity;
+            existingOrderItem.MenuId = entity.MenuId;
             existingOrderItem.Menu = entity.Menu;
             await ctx.Save();
             return existingOrderItem;

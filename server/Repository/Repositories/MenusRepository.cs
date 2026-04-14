@@ -9,21 +9,21 @@ using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    internal class MenusRepository : IRepository<Menus>
+    public class MenusRepository : IRepository<Menu>
     {
         private readonly IContext ctx;
         public MenusRepository(IContext context)
         {
             ctx = context;
         }
-        public async Task<Menus> Add(Menus entity)
+        public async Task<Menu> Add(Menu entity)
         {
             ctx.Menus.Add(entity);
             await ctx.Save();
             return entity;
         }
 
-        public async Task<Menus> Delete(int id)
+        public async Task<Menu> Delete(int id)
         {
             var m = await ctx.Menus.FirstOrDefaultAsync(x => x.Id == id);
             if (m != null)
@@ -35,25 +35,25 @@ namespace Repository.Repositories
             return null;
         }
 
-        public Task<List<Menus>> GetAll()
+        public Task<List<Menu>> GetAll()
         {
             return ctx.Menus.ToListAsync();
         }
 
-        public async Task<Menus> GetById(int id)
+        public async Task<Menu> GetById(int id)
         {
             return await ctx.Menus.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<Menus> Update(Menus entity)
+        public async Task<Menu> Update(Menu entity)
         {
             var existingMenus = await ctx.Menus.FirstOrDefaultAsync(x => x.Id == entity.Id);
             if (existingMenus == null)
                 return null;
+            existingMenus.Id = entity.Id;
             existingMenus.Price= entity.Price;
             existingMenus.Store= entity.Store;
             existingMenus.StoreId= entity.StoreId;
-            existingMenus.Id= entity.Id;
             existingMenus.Category= entity.Category;
             existingMenus.Volume = entity.Volume;
             existingMenus.ItemName = entity.ItemName;

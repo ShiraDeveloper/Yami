@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    internal class DeliveryRepository : IRepository<Delivery>
+    public class DeliveryRepository : IRepository<Delivery>
     {
          private readonly IContext ctx;
         public DeliveryRepository(IContext context)
@@ -51,10 +51,10 @@ namespace Repository.Repositories
             var existingDelivery = await ctx.Delivery.FirstOrDefaultAsync(x => x.Id == entity.Id);
             if (existingDelivery == null)
                 return null;
-            existingDelivery.IsActive= entity.IsActive;
-            existingDelivery.CourierId = entity.CourierId;
             existingDelivery.Id = entity.Id;
+            existingDelivery.CourierId = entity.CourierId;
             existingDelivery.Courier = entity.Courier;
+            existingDelivery.IsActive= entity.IsActive;
             existingDelivery.CreatedAt = entity.CreatedAt;
             existingDelivery.DeliveryOrders = entity.DeliveryOrders;
             await ctx.Save();

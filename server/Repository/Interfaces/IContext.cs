@@ -10,16 +10,17 @@ namespace Repository.Interfaces
 {
     public interface IContext
     {
-        public DbSet<Couriers> Couriers { get; set; }
-        public DbSet<Orders> Orders { get; set; }
-        public DbSet<Stores> Stores { get; set; }
-        public DbSet<Users> Users { get; set; }
-        public DbSet<Menus> Menus { get; set; }
+        public DbSet<Courier> Couriers { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<Store> Stores { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Menu> Menus { get; set; }
         public DbSet<Delivery> Delivery { get; set; }
-        public DbSet<DeliveryOrder> DeliveryOrder { get; set; }
+        public DbSet<DeliveryOrder> DeliveryOffer { get; set; }
         public DbSet<OrderItem> OrderItem { get; set; }
-        public DbSet<Menus> Items { get; set; }
         public DbSet<CourierTracking> CourierTracking { get; set; }
+        public DbSet<DeliveryOffer> DeliveryOffers { get; set; }
         Task Save();
+        Task<int> SaveChangesAsync();
     }
 }

@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 export default function Login() {
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email,setEmail] = useState("");
+  const [password,setPassword] = useState("");
+  const [error,setError] = useState("");
+  const [loading,setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -20,37 +20,39 @@ export default function Login() {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/Auth/login`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({email,password})
         }
       );
 
-      const data = await response.json().catch(() => ({}));
+      const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || "User not found");
-
-        // מעבר ל-Register עם המייל
-        navigate("/register", { state: { email } });
-
+        setError(data.message);
         return;
       }
 
+      // שמירה
       localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
 
-      navigate("/stores");
+      // ניווט לפי תפקיד
+      if (data.role === "Customer") navigate("/stores");
+      else if (data.role === "Admin") navigate("/admin");
+      else if (data.role === "Courier") navigate("/courier");
 
     } catch {
-      setError("Server connection error");
-    } finally {
-      setLoading(false);
+      setError("Server error");
     }
+
+    setLoading(false);
   };
 
   return (
     <div style={styles.container}>
       <form onSubmit={handleLogin} style={styles.form}>
+
         <h2>Login</h2>
 
         {error && <p style={styles.error}>{error}</p>}
@@ -59,27 +61,26 @@ export default function Login() {
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e)=>setEmail(e.target.value)}
           style={styles.input}
-          required
         />
 
         <input
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e)=>setPassword(e.target.value)}
           style={styles.input}
-          required
         />
 
-        <button type="submit" style={styles.button}>
+        <button style={styles.button}>
           {loading ? "Loading..." : "Login"}
         </button>
 
-        <p style={styles.link} onClick={() => navigate("/register")}>
-          Don't have an account? Register
+        <p style={styles.link} onClick={()=>navigate("/register")}>
+          Register
         </p>
+
       </form>
     </div>
   );

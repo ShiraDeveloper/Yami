@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    internal class CourierTrackingRepository : IRepository<CourierTracking>
+    public class CourierTrackingRepository : IRepository<CourierTracking>
     {
         private readonly IContext ctx;
         public CourierTrackingRepository(IContext context)
@@ -50,14 +50,14 @@ namespace Repository.Repositories
             var existingCourierTracking = await ctx.CourierTracking.FirstOrDefaultAsync(x => x.Id == entity.Id);
             if (existingCourierTracking == null)
                 return null;
-            existingCourierTracking.CourierId = entity.CourierId;
             existingCourierTracking.Id = entity.Id;
+            existingCourierTracking.CourierId = entity.CourierId;
+            existingCourierTracking.Courier = entity.Courier;
             existingCourierTracking.Latitude = entity.Latitude;
             existingCourierTracking.Longitude = entity.Longitude;
             existingCourierTracking.Timestamp = entity.Timestamp;
-            existingCourierTracking.Order = entity.Order;
             existingCourierTracking.OrderId = entity.OrderId;
-            existingCourierTracking.Courier = entity.Courier;
+            existingCourierTracking.Order = entity.Order;
             await ctx.Save();
             return existingCourierTracking;
         }
