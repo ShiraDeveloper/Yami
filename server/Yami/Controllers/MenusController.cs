@@ -78,5 +78,11 @@ namespace API.Controllers
             if (menu == null) return NotFound();
             return Ok(menu);
         }
+        [HttpGet("store/{storeId}")]
+        public async Task<IActionResult> GetByStore(int storeId)
+        {
+            var menus = await _menuService.GetMenusByStoreId(storeId);
+            return Ok(menus);
+        }
     }
 }

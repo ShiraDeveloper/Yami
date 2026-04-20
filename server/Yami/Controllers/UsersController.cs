@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Common.Dto;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Repository.Entities;
 using Service.Interfaces;
 
@@ -14,6 +16,37 @@ namespace API.Controllers
         {
             _userService = userService;
         }
+        //ADD-REGISTER
+
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] UserCreateDto dto)
+        {
+            try
+            {
+                var user = new User
+                {
+                    Name = dto.Name,
+                    Email = dto.Email,
+                    Password = dto.Password,
+                    Phone = dto.Phone
+                };
+
+                var created = await _userService.Add(user);
+
+                return Ok(new
+                {
+                    created.Id,
+                    created.Email,
+                    Role = created.Role.ToString()
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         // GET BY ID
         [HttpGet("{id}")]

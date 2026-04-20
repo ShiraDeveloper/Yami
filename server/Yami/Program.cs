@@ -69,13 +69,30 @@ namespace Yami
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
+
                         ValidIssuer = builder.Configuration["Jwt:Issuer"],
                         ValidAudience = builder.Configuration["Jwt:Audience"],
+
                         IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+
+                        ClockSkew = TimeSpan.Zero
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnAuthenticationFailed = context =>
+                        {
+                            Console.WriteLine("JWT Error: " + context.Exception.Message);
+                            return Task.CompletedTask;
+                        },
+                        OnTokenValidated = context =>
+                        {
+                            Console.WriteLine("Token valid");
+                            return Task.CompletedTask;
+                        }
                     };
                 });
-
             // ===== CORS =====
             builder.Services.AddCors(options =>
             {
