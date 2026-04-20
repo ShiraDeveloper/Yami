@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Stores from "./pages/Stores";
+import StoreMenu from "./components/StoreMenu";
+import StoreList from "./components/StoreList";
+import MyOrders from "./pages/MyOrders";
 
 function App() {
   return (
@@ -9,7 +11,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/stores" element={<Stores />} />
+        <Route path="/stores" element={<StoreList />} />
+        <Route path="/store/:id" element={<StoreMenu />} />
+        <Route path="/my-orders" element={<MyOrders />} />
       </Routes>
     </BrowserRouter>
   );

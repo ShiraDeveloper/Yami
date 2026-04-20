@@ -1,94 +1,264 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, MapPin } from "lucide-react";
-import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export default function StoreList() {
   const [stores, setStores] = useState([]);
+  const [filteredStores, setFilteredStores] = useState([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [location, setLocation] = useState(null);
 
+  const navigate = useNavigate();
+  console.log("FIRST STORE:", filteredStores?.[0]);
+console.log("ALL FILTERED:", filteredStores);
+
+  // 📍 קבלת מיקום משתמש
   useEffect(() => {
-    fetchStores();
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      () => {
+        setLocation({ lat: 32, lng: 34 }); // fallback
+      }
+    );
   }, []);
 
-  async function fetchStores() {
+  // 🏪 טעינת חנויות
+  useEffect(() => {
+    if (location) fetchStores();
+  }, [location]);
+
+  const fetchStores = async () => {
     try {
       setLoading(true);
-      setError(null);
+      setError("");
 
-      const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem("token");
 
-      const res = await fetch("/api/stores/nearest", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      if (!token) {
+        navigate("/");
+        return;
+      }
 
-      if (!res.ok) throw new Error("Failed to load stores");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/Stores?userLat=${location.lat}&userLng=${location.lng}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await res.json();
-      setStores(data);
+
+      console.log("stores response:", data);
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch stores");
+      }
+
+      // 🧠 תמיכה בכל סוגי מבנה API
+      const storesData = Array.isArray(data)
+        ? data
+        : data.stores || data.data || [];
+
+      setStores(storesData);
+      setFilteredStores(storesData);
+
     } catch (err) {
-      setError("Failed to load stores. Please try again.");
+      setError("Failed to load stores");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
+  // 🔍 חיפוש
+  const handleSearch = (value) => {
+    setSearch(value);
+
+    if (!value) {
+      setFilteredStores(stores);
+      return;
+    }
+
+    const filtered = stores.filter((s) =>
+      (s.name || s.storeName || "")
+        .toLowerCase()
+        .includes(value.toLowerCase())
+    );
+
+    setFilteredStores(filtered);
+  };
+
+  // ⏳ טעינה
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin" />
+      <div style={styles.center}>
+        <h2>Loading...</h2>
       </div>
     );
   }
 
+  // ❌ שגיאה
   if (error) {
     return (
-      <div className="text-center mt-10">
-        <p className="mb-4">{error}</p>
-        <Button onClick={fetchStores}>Retry</Button>
+      <div style={styles.center}>
+        <p style={{ color: "red" }}>{error}</p>
+        <button onClick={fetchStores}>Retry</button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-semibold mb-6">Stores Near You</h1>
+    <div style={styles.container}>
+      <button onClick={() => navigate("/my-orders")}>
+       🧾 My Orders
+      </button>
+      <h1 style={styles.title}>Stores Near You</h1>
 
-      <div className="grid gap-4">
-        {stores.map((store, index) => (
-          <motion.div
-            key={store.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <Card className="rounded-2xl shadow-sm">
-              <CardContent className="p-4 flex justify-between items-center">
-                <div>
-                  <h2 className="text-lg font-medium">{store.name}</h2>
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
-                    <MapPin size={16} className="mr-1" />
-                    {store.distanceKm ? store.distanceKm.toFixed(2) : 0} km
-                  </div>
-                </div>
+      {/* 🔍 חיפוש */}
+      <input
+        placeholder="Search store..."
+        value={search}
+        onChange={(e) => handleSearch(e.target.value)}
+        style={styles.search}
+      />
 
-                <Button
-                  onClick={() => {
-                    window.location.href = `/store/${store.id}`;
-                  }}
-                >
-                  View Menu
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
+      {/* 🏪 רשימת חנויות */}
+      <div style={styles.grid}>
+        {filteredStores.map((store) => (
+          
+          <div key={store.id} style={styles.card}>
+            
+            {/* מידע חנות */}
+            <div>
+              <h2>{store.name || "Unnamed store"}</h2>
+
+              <p style={styles.address}>
+                📍 {store.address || "No address available"}
+              </p>
+
+              <p style={styles.distance}>
+                🚶 {store.distanceFromUser?.toFixed(2)} km
+              </p>
+
+              {store.kosherTags && (
+                <p style={{ color: "green" }}>
+                  {store.kosherTags}
+                </p>
+              )}
+            </div>
+
+            {/* כפתור מעבר לתפריט */}
+            <button
+              style={styles.button}
+              onClick={() => navigate(`/store/${store.id}`)}
+            >
+              View Menu
+            </button>
+          </div>
         ))}
       </div>
     </div>
   );
 }
+
+// 🎨 עיצוב
+const styles = {
+  container: {
+    minHeight: "100vh",
+    padding: "40px",
+    backgroundColor: "#f5f6fa",
+    color: "#1e1e1e", // 🔥 צבע בסיס לכל הטקסט
+    fontFamily: "Arial, sans-serif",
+  },
+
+  title: {
+    textAlign: "center",
+    marginBottom: "20px",
+    color: "#2c3e50",
+    fontSize: "28px",
+    fontWeight: "bold",
+  },
+
+  search: {
+    display: "block",
+    margin: "0 auto 30px",
+    padding: "10px",
+    width: "300px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    backgroundColor: "#ffffff",
+    color: "#000000", // 🔥 חשוב
+  },
+
+  grid: {
+    display: "grid",
+    gap: "20px",
+    maxWidth: "700px",
+    margin: "0 auto",
+  },
+
+  card: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "#ffffff",
+    padding: "15px",
+    borderRadius: "12px",
+    boxShadow: "0 5px 15px rgba(0,0,0,0.08)",
+  },
+
+  storeName: {
+    color: "#1e1e1e", // 🔥 שלא יהיה לבן
+    marginBottom: "5px",
+  },
+
+  address: {
+    color: "#555",
+    fontSize: "14px",
+  },
+
+  distance: {
+    color: "#777",
+    fontSize: "14px",
+  },
+
+  kosher: {
+    color: "green",
+    fontSize: "13px",
+  },
+
+  button: {
+    padding: "8px 12px",
+    backgroundColor: "#4e73df",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+
+  myOrdersBtn: {
+    marginBottom: "20px",
+    padding: "10px 15px",
+    backgroundColor: "#2c3e50",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+  },
+
+  center: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100vh",
+    flexDirection: "column",
+    color: "#1e1e1e", // 🔥 גם כאן
+  },
+};

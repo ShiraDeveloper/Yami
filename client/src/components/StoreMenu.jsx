@@ -1,105 +1,144 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
-const StoreMenu = ({ storeId, customerId }) => {
-  const [menu, setMenu] = useState([]);
-  const [cart, setCart] = useState([]);
-  const [loadingMenu, setLoadingMenu] = useState(true);
-  const [orderStatus, setOrderStatus] = useState("");
+export default function StoreMenu() {
+  const { id } = useParams(); // 🔥 זה ה-ID האמיתי
 
-  // --- Fetch menu from API asynchronously ---
+  const [menus, setMenus] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const fetchMenu = async () => {
+    const fetchMenus = async () => {
       try {
-        const res = await fetch(`https://localhost:5001/api/stores/${storeId}/menu`);
-        if (!res.ok) throw new Error("Error loading menu");
+        setLoading(true);
+
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/menu/store/${id}`
+        );
+
         const data = await res.json();
-        setMenu(data);
+
+        console.log("MENU DATA:", data);
+
+        setMenus(Array.isArray(data) ? data : data.items || []);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching menus:", err);
       } finally {
-        setLoadingMenu(false);
+        setLoading(false);
       }
     };
 
-    fetchMenu();
-  }, [storeId]);
-
-  // --- Cart functions ---
-  const addToCart = (item) => setCart([...cart, item]);
-  const removeFromCart = (itemId) => setCart(cart.filter((item) => item.id !== itemId));
-  const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
-
-  // --- Place order function ---
-  const placeOrder = async () => {
-    if (cart.length === 0) return;
-
-    const orderPayload = {
-      CustomerId: customerId,
-      StoreId: storeId,
-      Items: cart.map((item) => ({ ProductId: item.id, Quantity: 1 })),
-      DeliveryLatitude: 32.0853,
-      DeliveryLongitude: 34.7818,
-    };
-
-    try {
-      setOrderStatus("Sending order...");
-      const res = await fetch("https://localhost:5001/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      });
-
-      if (!res.ok) throw new Error("Error placing order");
-
-      const result = await res.json();
-      console.log("Order placed successfully:", result);
-      setOrderStatus("Order placed successfully!");
-      setCart([]); // empty the cart
-    } catch (err) {
-      console.error(err);
-      setOrderStatus("Error placing order");
+    if (id) {
+      fetchMenus();
     }
-  };
+  }, [id]);
 
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>Store Menu</h1>
+  if (loading) return <p>טוען תפריט...</p>;
 
-      {loadingMenu ? (
-        <p>Loading menu...</p>
-      ) : (
-        <ul>
-          {menu.map((item) => (
-            <li key={item.id} style={{ marginBottom: "10px" }}>
-              {item.name} - ${item.price}{" "}
-              <button onClick={() => addToCart(item)}>Add to cart</button>
-            </li>
-          ))}
-        </ul>
-      )}
+return (
+  <div style={styles.container}>
+    <h1 style={styles.title}>🍽 תפריט החנות</h1>
 
-      <h2>My Cart</h2>
-      {cart.length === 0 ? (
-        <p>Your cart is empty</p>
-      ) : (
-        <ul>
-          {cart.map((item) => (
-            <li key={item.id}>
-              {item.name} - ${item.price}{" "}
-              <button onClick={() => removeFromCart(item.id)}>Remove</button>
-            </li>
-          ))}
-        </ul>
-      )}
+    {menus.length === 0 ? (
+      <p style={styles.empty}>אין פריטים בתפריט</p>
+    ) : (
+      <div style={styles.grid}>
+        {menus.map((menu) => (
+          <div key={menu.id} style={styles.card}>
+            
+            <div>
+              <h3 style={styles.name}>
+                {menu.itemName || menu.name}
+              </h3>
 
-      <p>Total: ${totalPrice}</p>
-      <button onClick={placeOrder} disabled={cart.length === 0}>
-        Place Order
-      </button>
+              <p style={styles.category}>
+                {menu.category}
+              </p>
 
-      {orderStatus && <p>{orderStatus}</p>}
-    </div>
-  );
+              <p style={styles.price}>
+                ₪{menu.price}
+              </p>
+            </div>
+
+            <button style={styles.button}>
+              הוסף לעגלה
+            </button>
+
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+}
+const styles = {
+  container: {
+    minHeight: "100vh",
+    padding: "40px",
+    backgroundColor: "#f5f6fa",
+    color: "#1e1e1e", // צבע בסיס לכל הטקסט
+    fontFamily: "Arial, sans-serif",
+  },
+
+  title: {
+    textAlign: "center",
+    marginBottom: "30px",
+    fontSize: "28px",
+    fontWeight: "bold",
+    color: "#2c3e50",
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: "20px",
+  },
+
+  card: {
+    background: "#ffffff",
+    padding: "20px",
+    borderRadius: "14px",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    transition: "transform 0.2s ease",
+  },
+
+  name: {
+    marginBottom: "6px",
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "#1e1e1e",
+  },
+
+  category: {
+    fontSize: "13px",
+    color: "#7f8c8d",
+    marginBottom: "10px",
+  },
+
+  price: {
+    fontWeight: "bold",
+    fontSize: "18px",
+    color: "#27ae60",
+    marginBottom: "15px",
+  },
+
+  button: {
+    backgroundColor: "#4e73df",
+    color: "#ffffff",
+    border: "none",
+    padding: "10px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "500",
+    transition: "0.2s",
+  },
+
+  empty: {
+    textAlign: "center",
+    color: "#7f8c8d",
+    fontSize: "16px",
+  },
 };
-
-export default StoreMenu;
