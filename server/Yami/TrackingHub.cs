@@ -12,4 +12,9 @@ public class TrackingHub : Hub
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"order-{orderId}");
     }
+    public async Task UpdateCourierLocation(int orderId, double lat, double lng)
+    {
+        await Clients.Group($"order-{orderId}")
+            .SendAsync("ReceiveCourierLocation", lat, lng);
+    }
 }

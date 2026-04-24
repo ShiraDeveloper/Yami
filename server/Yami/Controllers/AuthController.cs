@@ -22,11 +22,18 @@ namespace Yami.Controllers
             try
             {
                 var token = await _authService.Login(request.Email, request.Password);
+
+                // אם השרות החזיר null, סימן שהפרטים שגויים
+                if (token == null)
+                {
+                    return Unauthorized(new { error = "Invalid email or password" });
+                }
+
                 return Ok(new { token });
             }
             catch (Exception ex)
             {
-                return Unauthorized(new { error = ex.Message });
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
     }
