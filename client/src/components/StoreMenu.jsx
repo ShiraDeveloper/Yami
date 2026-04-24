@@ -33,43 +33,69 @@ export default function StoreMenu() {
     }
   }, [id]);
 
+const addToCart = (item) => {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  // אם הסל לא ריק ויש חנות אחרת → חוסמים
+  if (cart.length > 0 && cart[0].storeId !== item.storeId) {
+    alert("You can only order from one store at a time");
+    return;
+  }
+
+  const existing = cart.find(x => x.id === item.id);
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      storeId: item.storeId, // חשוב מאוד
+      quantity: 1
+    });
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+};
+
   if (loading) return <p>טוען תפריט...</p>;
 
-return (
-  <div style={styles.container}>
-    <h1 style={styles.title}>🍽 תפריט החנות</h1>
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.title}>🍽 תפריט החנות</h1>
 
-    {menus.length === 0 ? (
-      <p style={styles.empty}>אין פריטים בתפריט</p>
-    ) : (
-      <div style={styles.grid}>
-        {menus.map((menu) => (
-          <div key={menu.id} style={styles.card}>
-            
-            <div>
-              <h3 style={styles.name}>
-                {menu.itemName || menu.name}
-              </h3>
+      {menus.length === 0 ? (
+        <p style={styles.empty}>אין פריטים בתפריט</p>
+      ) : (
+        <div style={styles.grid}>
+          {menus.map((menu) => (
+            <div key={menu.id} style={styles.card}>
 
-              <p style={styles.category}>
-                {menu.category}
-              </p>
+              <div>
+                <h3 style={styles.name}>
+                  {menu.itemName || menu.name}
+                </h3>
 
-              <p style={styles.price}>
-                ₪{menu.price}
-              </p>
+                <p style={styles.category}>
+                  {menu.category}
+                </p>
+
+                <p style={styles.price}>
+                  ₪{menu.price}
+                </p>
+              </div>
+
+              <button onClick={() => addToCart(menu)} style={styles.button}>
+                Add to Cart
+              </button>
+
             </div>
-
-            <button style={styles.button}>
-              הוסף לעגלה
-            </button>
-
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-);
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 const styles = {
   container: {

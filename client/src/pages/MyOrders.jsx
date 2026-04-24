@@ -18,7 +18,7 @@ export default function MyOrders() {
       setError("");
 
       const token = localStorage.getItem("token");
-
+      console.log("My Token is:", token);
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/orders/my-orders`,
         {

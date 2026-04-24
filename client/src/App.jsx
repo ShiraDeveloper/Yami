@@ -4,16 +4,24 @@ import Register from "./pages/Register";
 import StoreMenu from "./components/StoreMenu";
 import StoreList from "./components/StoreList";
 import MyOrders from "./pages/MyOrders";
+import Navbar from "./components/Navbar";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import LiveCourierMap from "./pages/LiveCourierMap";
 
 function App() {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/stores" element={<StoreList />} />
         <Route path="/store/:id" element={<StoreMenu />} />
         <Route path="/my-orders" element={<MyOrders />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/live-courier-map" element={<LiveCourierMap />} />
       </Routes>
     </BrowserRouter>
   );
