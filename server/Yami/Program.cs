@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -19,22 +19,22 @@ namespace Yami
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // ===== Controllers =====
+            // ===== 1. Services Configuration =====
             builder.Services.AddControllers();
+            builder.Services.AddSignalR(); // רישום SignalR
 
-            // ===== ����� ���� ������ =====
+            // ===== 2. Database Connection =====
             builder.Services.AddDbContext<YamiDbContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
                     b => b.MigrationsAssembly("Yami")
                 ));
 
-            // ===== Swagger =====
+            // ===== 3. Swagger with JWT Support =====
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Yami API", Version = "v1" });
-
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "Enter: Bearer {your token}",
@@ -42,24 +42,17 @@ namespace Yami
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey
                 });
-
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
                     {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
+                        new OpenApiSecurityScheme {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
                         },
                         new string[] {}
                     }
                 });
             });
 
-            // ===== JWT Authentication =====
+            // ===== 4. JWT Authentication =====
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -69,58 +62,43 @@ namespace Yami
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-
                         ValidIssuer = builder.Configuration["Jwt:Issuer"],
                         ValidAudience = builder.Configuration["Jwt:Audience"],
-
                         IssuerSigningKey = new SymmetricSecurityKey(
                             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-
                         ClockSkew = TimeSpan.Zero
                     };
-
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnAuthenticationFailed = context =>
-                        {
-                            Console.WriteLine("JWT Error: " + context.Exception.Message);
-                            return Task.CompletedTask;
-                        },
-                        OnTokenValidated = context =>
-                        {
-                            Console.WriteLine("Token valid");
-                            return Task.CompletedTask;
-                        }
-                    };
                 });
-            // ===== CORS =====
+
+            // ===== 5. CORS (Crucial for SignalR) =====
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowReactDev", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins("http://localhost:5173") // כתובת ה-React
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod()
+                          .AllowCredentials(); // חובה עבור SignalR
                 });
             });
 
-            // ===== DbContext =====
+            // ===== 6. Dependency Injection =====
             builder.Services.AddScoped<IContext, YamiDbContext>();
 
-            // ===== Services =====
+            // Services
             builder.Services.AddScoped<ITrackingService, TrackingService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
-            builder.Services.AddScoped<IRepository<Courier>, CouriersRepository>();
-            builder.Services.AddScoped<CourierMatchingService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IMenuService, MenuService>();
             builder.Services.AddScoped<IStoreService, StoreService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<CourierMatchingService>();
 
-            // ===== Repositories =====
+            // Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            //builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>)); // אם יש לך רפוזיטורי גנרי
             builder.Services.AddScoped<IRepository<User>, UserRepository>();
-
+            builder.Services.AddScoped<IRepository<Courier>, CouriersRepository>();
             builder.Services.AddScoped<IRepository<Menu>, MenusRepository>();
             builder.Services.AddScoped<IRepository<Store>, StoreRepository>();
             builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
@@ -128,30 +106,26 @@ namespace Yami
             builder.Services.AddScoped<IRepository<DeliveryOrder>, DeliveryOrderRepository>();
             builder.Services.AddScoped<IRepository<DeliveryOffer>, DeliveryOfferRepository>();
             builder.Services.AddScoped<IRepository<CourierTracking>, CourierTrackingRepository>();
-            builder.Services.AddSignalR();
+
             var app = builder.Build();
 
-            //SignalR-for hubs to follow courier location in real time
-            
-
-            app.MapHub<TrackingHub>("/trackingHub");
-
-
-            // ===== Middleware =====
+            // ===== 7. Middleware Pipeline =====
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
-
             app.UseHttpsRedirection();
 
-            app.UseCors("AllowReactDev");
+            // סדר ה-Middleware קריטי!
+            app.UseCors("AllowReactDev"); // 1. CORS ראשון
 
-            app.UseAuthentication();
-            app.UseAuthorization();
+            app.UseAuthentication();     // 2. אימות
+            app.UseAuthorization();      // 3. הרשאות
 
+            // 4. מיפוי נתיבים
+            app.MapHub<TrackingHub>("/trackingHub");
             app.MapControllers();
 
             app.Run();

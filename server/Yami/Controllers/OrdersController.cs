@@ -61,10 +61,18 @@ namespace API.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirst("id")!.Value);
+                // 1. חילוץ ה-ID מהטוקן בצורה בטוחה
+                var userIdClaim = User.FindFirst("id");
+                if (userIdClaim == null) return Unauthorized("User ID not found in token");
 
+                int userId = int.Parse(userIdClaim.Value);
+
+                // 2. שליפת הנתונים מהשרות (וודאי שהשרות משתמש ב-Include!)
                 var orders = await _orderService.GetAll();
 
+                if (orders == null) return Ok(new List<OrderDto>());
+
+                // 3. מיפוי ל-DTO עם הגנות NULL
                 var result = orders
                     .Where(o => o.CustomerId == userId)
                     .Select(o => new OrderDto
@@ -72,21 +80,25 @@ namespace API.Controllers
                         Id = o.Id,
                         StoreId = o.StoreId,
                         Status = o.Status.ToString(),
-                        OrderItems = o.OrderItems.Select(i => new OrderItemDto
+
+                        // הגנה כפולה: גם אם שכחנו Include, הקוד לא יקרוס
+                        OrderItems = o.OrderItems?.Select(i => new OrderItemDto
                         {
                             MenuId = i.MenuId,
                             Quantity = i.Quantity
-                        }).ToList()
-                    });
+                        }).ToList() ?? new List<OrderItemDto>()
+                    })
+                    .ToList();
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // רישום השגיאה ב-Console של השרת לדיבאג עתידי
+                Console.WriteLine($"Error fetching orders for user: {ex.Message}");
+                return StatusCode(500, "An error occurred while fetching your orders.");
             }
         }
-
         // ================= כל ההזמנות =================
 
         [HttpGet]
