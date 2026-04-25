@@ -8,6 +8,7 @@ import Navbar from "./components/Navbar";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import LiveCourierMap from "./pages/LiveCourierMap";
+import TrackOrder from "./pages/TrackOrder";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/live-courier-map" element={<LiveCourierMap />} />
+        <Route path="/track/:orderId" element={<TrackOrder />} />
       </Routes>
     </BrowserRouter>
   );

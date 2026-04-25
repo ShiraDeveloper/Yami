@@ -18,7 +18,7 @@ export default function MyOrders() {
       setError("");
 
       const token = localStorage.getItem("token");
-      console.log("My Token is:", token);
+
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/orders/my-orders`,
         {
@@ -73,7 +73,8 @@ export default function MyOrders() {
         <div style={styles.list}>
           {orders.map((order) => (
             <div key={order.id} style={styles.card}>
-
+              
+              {/* 📦 פרטי הזמנה */}
               <div>
                 <h3>Order #{order.id}</h3>
 
@@ -82,7 +83,7 @@ export default function MyOrders() {
                 <p>
                   📦 Status:{" "}
                   <span style={getStatusStyle(order.status)}>
-                    {order.status}
+                    {formatStatus(order.status)}
                   </span>
                 </p>
 
@@ -91,12 +92,27 @@ export default function MyOrders() {
                 </p>
               </div>
 
-              <button
-                style={styles.button}
-                onClick={() => navigate(`/order/${order.id}`)}
-              >
-                View Details
-              </button>
+              {/* 🎯 כפתורים */}
+              <div style={styles.actions}>
+                
+                <button
+                  style={styles.button}
+                  onClick={() => navigate(`/order/${order.id}`)}
+                >
+                  Details
+                </button>
+
+                {/* 🚀 Track רק להזמנות פעילות */}
+                {order.status !== "Delivered" &&
+                  order.status !== "Canceled" && (
+                    <button
+                      style={styles.trackBtn}
+                      onClick={() => navigate(`/track/${order.id}`)}
+                    >
+                      Track
+                    </button>
+                  )}
+              </div>
 
             </div>
           ))}
@@ -106,18 +122,39 @@ export default function MyOrders() {
   );
 }
 
+// 🎨 עיצוב סטטוסים
 const getStatusStyle = (status) => {
   switch (status) {
     case "New":
-      return { color: "orange" };
+      return { color: "#6b7280", fontWeight: "bold" };
     case "Approved":
-      return { color: "blue" };
+      return { color: "#f59e0b", fontWeight: "bold" };
     case "InProgress":
-      return { color: "purple" };
+      return { color: "#2563eb", fontWeight: "bold" };
     case "Delivered":
-      return { color: "green" };
+      return { color: "#16a34a", fontWeight: "bold" };
+    case "Canceled":
+      return { color: "#dc2626", fontWeight: "bold" };
     default:
       return { color: "black" };
+  }
+};
+
+// 🧠 טקסט יפה לסטטוס
+const formatStatus = (status) => {
+  switch (status) {
+    case "New":
+      return "🆕 New";
+    case "Approved":
+      return "👨‍🍳 Preparing";
+    case "InProgress":
+      return "🚚 On the way";
+    case "Delivered":
+      return "✅ Delivered";
+    case "Canceled":
+      return "❌ Canceled";
+    default:
+      return status;
   }
 };
 
@@ -146,14 +183,28 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     background: "white",
-    padding: "15px",
-    borderRadius: "10px",
-    boxShadow: "0 5px 10px rgba(0,0,0,0.1)",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 6px 12px rgba(0,0,0,0.1)",
+  },
+
+  actions: {
+    display: "flex",
+    gap: "10px",
   },
 
   button: {
     padding: "8px 12px",
     backgroundColor: "#4e73df",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+
+  trackBtn: {
+    padding: "8px 12px",
+    backgroundColor: "#16a34a",
     color: "white",
     border: "none",
     borderRadius: "6px",

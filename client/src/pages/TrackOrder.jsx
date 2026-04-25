@@ -1,0 +1,158 @@
+import { useEffect, useRef, useState } from "react";
+import {
+  GoogleMap,
+  useLoadScript,
+  Marker,
+  DirectionsRenderer,
+} from "@react-google-maps/api";
+import * as signalR from "@microsoft/signalr";
+
+const containerStyle = {
+  width: "100%",
+  height: "100vh",
+};
+
+const customerLocation = {
+  lat: 32.0853,
+  lng: 34.7818,
+};
+
+export default function LiveCourierMap({ orderId }) {
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
+
+  const [courier, setCourier] = useState(null);
+  const [directions, setDirections] = useState(null);
+  const [eta, setEta] = useState(null);
+
+  const connectionRef = useRef(null);
+  const animationRef = useRef(null);
+
+  // 🔌 SignalR
+  useEffect(() => {
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl("https://localhost:7234/trackingHub")
+      .withAutomaticReconnect()
+      .build();
+
+    connection.start().then(() => {
+      connection.invoke("JoinOrder", orderId);
+    });
+
+    connection.on("ReceiveCourierLocation", (courierId, lat, lng) => {
+      smoothMove({ lat, lng });
+      getRoute({ lat, lng });
+    });
+
+    connectionRef.current = connection;
+
+    return () => connection.stop();
+  }, [orderId]);
+
+  // 🎯 תנועה חלקה
+  const smoothMove = (newPos) => {
+    if (!courier) {
+      setCourier(newPos);
+      return;
+    }
+
+    let step = 0;
+    const steps = 30;
+
+    const start = courier;
+    const deltaLat = (newPos.lat - start.lat) / steps;
+    const deltaLng = (newPos.lng - start.lng) / steps;
+
+    clearInterval(animationRef.current);
+
+    animationRef.current = setInterval(() => {
+      step++;
+
+      setCourier((prev) => ({
+        lat: prev.lat + deltaLat,
+        lng: prev.lng + deltaLng,
+      }));
+
+      if (step >= steps) {
+        clearInterval(animationRef.current);
+      }
+    }, 50);
+  };
+
+  // 🛣️ מסלול אמיתי + ETA
+  const getRoute = (courierPos) => {
+    const directionsService = new window.google.maps.DirectionsService();
+
+    directionsService.route(
+      {
+        origin: courierPos,
+        destination: customerLocation,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === "OK") {
+          setDirections(result);
+
+          const leg = result.routes[0].legs[0];
+          setEta(leg.duration.text); // ⏱️ ETA אמיתי
+        }
+      }
+    );
+  };
+
+  if (!isLoaded) return <div>Loading...</div>;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={customerLocation}
+        zoom={14}
+        options={{
+          disableDefaultUI: true,
+          zoomControl: true,
+        }}
+      >
+        {/* 📍 יעד */}
+        <Marker
+          position={customerLocation}
+          icon={{
+            url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+          }}
+        />
+
+        {/* 🚚 שליח */}
+        {courier && (
+          <Marker
+            position={courier}
+            icon={{
+              url: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
+              scaledSize: new window.google.maps.Size(40, 40),
+            }}
+          />
+        )}
+
+        {/* 🛣️ מסלול אמיתי */}
+        {directions && <DirectionsRenderer directions={directions} />}
+      </GoogleMap>
+
+      {/* 📊 ETA */}
+      {eta && (
+        <div style={panelStyle}>
+          ⏱️ ETA: {eta}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const panelStyle = {
+  position: "absolute",
+  top: 20,
+  right: 20,
+  background: "white",
+  padding: "10px 15px",
+  borderRadius: "10px",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+};
