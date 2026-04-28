@@ -204,5 +204,33 @@ namespace API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        // ================= מסלול השליח =================
+        [HttpGet("my-route")]
+        public async Task<IActionResult> GetMyRoute()
+        {
+            var courierId = GetCurrentUserId(); // שליפת ה-ID של השליח המחובר
+            var orders = await _orderService.GetOrdersByCourier(courierId);
+
+            // כאן נחזיר את ההזמנות ממוינות לפי הלוגיקה שבנינו ב-CanCourierHandleRouteWithinTime
+            var sortedOrders = orders
+                .Where(o => o.Status != OrderStatus.Delivered)
+                .OrderBy(o => o.PlannedSequence) // כדאי להוסיף שדה סדר ב-DB
+                .ToList();
+
+            return Ok(sortedOrders);
+        }
+        [NonAction] // מציין שזו לא נקודת קצה של ה-API אלא פונקציה פנימית
+        private int GetCurrentUserId()
+        {
+            // שליפת ה-ID מתוך ה-Claims של ה-Token
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                throw new Exception("משתמש לא מחובר או Token לא תקין");
+            }
+
+            return userId;
+        }
     }
 }

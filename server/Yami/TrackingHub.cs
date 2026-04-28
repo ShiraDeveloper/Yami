@@ -19,11 +19,9 @@ public class TrackingHub : Hub
     }
 
     // השליח קורא לפונקציה הזו כדי לעדכן את מיקומו
-    public async Task UpdateCourierLocation(int orderId, double lat, double lng)
+    public async Task UpdateCourierLocation(int courierId, int orderId, double lat, double lng)
     {
-        // שליחת המיקום לכל מי שנמצא בקבוצה של ההזמנה הזו
-        // שימי לב: שם הפונקציה ב-React חייב להיות "ReceiveCourierLocation"
         await Clients.Group($"order-{orderId}")
-            .SendAsync("ReceiveCourierLocation", orderId, lat, lng);
+            .SendAsync("ReceiveCourierLocation", courierId, lat, lng);
     }
 }
