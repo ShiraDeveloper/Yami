@@ -11,6 +11,7 @@ using Repository.Repositories;
 using Service.Interfaces;
 using Service.Services;
 using Service.Implementations;
+using Common.Hubs;
 
 namespace Yami
 {
@@ -23,8 +24,10 @@ namespace Yami
             // ===== 1. Services =====
             builder.Services.AddControllers();
             builder.Services.AddSignalR();
+            // רישום ה-Worker כדי שירוץ ברקע ברגע שהשרת עולה
+            builder.Services.AddHostedService<OrderAssignmentWorker>();
 
-            // ⭐ חשוב: מאפשר לזהות משתמשים ב-SignalR לפי JWT
+            // מאפשר לזהות משתמשים ב-SignalR לפי ה-ID שנמצא בתוך ה-JWT
             builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 
             // ===== 2. Database =====
@@ -77,7 +80,7 @@ namespace Yami
                         ClockSkew = TimeSpan.Zero
                     };
 
-                    // ⭐ קריטי ל-SignalR (קבלת טוקן דרך URL)
+                    // קריטי ל-SignalR: שליפת הטוקן מה-Query String בחיבור הראשוני
                     options.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
@@ -90,26 +93,24 @@ namespace Yami
                             {
                                 context.Token = accessToken;
                             }
-
                             return Task.CompletedTask;
                         }
                     };
                 });
 
-            // ===== 5. CORS =====
+            // ===== 5. CORS (מעודכן לפורט 5174) =====
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowReactDev", policy =>
+                options.AddPolicy("YamiPolicy", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins("http://localhost:5174", "http://localhost:5173")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials(); // חובה ל-SignalR
+                          .AllowCredentials(); // חובה כדי לאפשר העברת טוקנים ב-SignalR
                 });
             });
 
             // ===== 6. Dependency Injection =====
-
             builder.Services.AddScoped<IContext, YamiDbContext>();
 
             // Services
@@ -119,11 +120,11 @@ namespace Yami
             builder.Services.AddScoped<IMenuService, MenuService>();
             builder.Services.AddScoped<IStoreService, StoreService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<CourierMatchingService>();
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IRepository<User>, UserRepository>();
+            builder.Services.AddScoped<ICourierRepository, CouriersRepository>(); 
             builder.Services.AddScoped<IRepository<Courier>, CouriersRepository>();
             builder.Services.AddScoped<IRepository<Menu>, MenusRepository>();
             builder.Services.AddScoped<IRepository<Store>, StoreRepository>();
@@ -132,6 +133,8 @@ namespace Yami
             builder.Services.AddScoped<IRepository<DeliveryOrder>, DeliveryOrderRepository>();
             builder.Services.AddScoped<IRepository<DeliveryOffer>, DeliveryOfferRepository>();
             builder.Services.AddScoped<IRepository<CourierTracking>, CourierTrackingRepository>();
+            builder.Services.AddScoped<ICourierMatchingService, CourierMatchingService>();
+            builder.Services.AddScoped<CourierMatchingService>(); // רישום נוסף לשימוש ישיר אם נדרש
 
             var app = builder.Build();
 
@@ -143,9 +146,10 @@ namespace Yami
                 app.UseSwaggerUI();
             }
 
+            // סדר ה-Middleware קריטי!
             app.UseHttpsRedirection();
 
-            app.UseCors("AllowReactDev"); // חשוב לפני Auth
+            app.UseCors("YamiPolicy"); // חייב להיות לפני Authentication
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -158,11 +162,12 @@ namespace Yami
         }
     }
 
-    // ⭐ מאפשר לשלוח הודעות לשליח ספציפי לפי ה-ID מהטוקן
+    // מאפשר לשלוח הודעות לשליח ספציפי לפי ה-ID מהטוקן
     public class CustomUserIdProvider : IUserIdProvider
     {
         public string GetUserId(HubConnectionContext connection)
         {
+            // שואב את ה-Claim של ה-ID שהגדרת ב-AuthService בזמן יצירת הטוקן
             return connection.User?.FindFirst("id")?.Value!;
         }
     }

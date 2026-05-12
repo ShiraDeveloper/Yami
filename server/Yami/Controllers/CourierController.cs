@@ -1,19 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Common.Dto;
 using Repository.Interfaces;
+using Repository.Entities;
+using Service.Interfaces;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class CourierController : ControllerBase
 {
-    private readonly CourierMatchingService _courierService;
+    private readonly ICourierMatchingService _courierService;
     private readonly IRepository<Courier> _courierRepository;
     private readonly ITrackingService _trackingService;
 
     public CourierController(
-        CourierMatchingService courierService,
+        ICourierMatchingService courierService,
         IRepository<Courier> courierRepository,
         ITrackingService trackingService)
     {
@@ -40,7 +44,8 @@ public class CourierController : ControllerBase
     // ================= 2. מסלול שליח =================
 
     [HttpGet("route/{courierId}")]
-    public async Task<ActionResult<CourierRouteDto>> GetRoute(
+    [Authorize(Roles = "Delivery")]
+    public async Task<IActionResult> GetRoute(
         int courierId,
         double newLat,
         double newLng)
@@ -52,14 +57,14 @@ public class CourierController : ControllerBase
         if (courier == null)
             return NotFound("Courier not found");
 
-        var route = _courierService.BuildRoute(courier, newLat, newLng);
-
-        return Ok(route);
+        // הערה: BuildRoute צריך להיות מממוש בשירות הקצאה
+        return Ok(new { courierId, message = "Route calculation not yet implemented" });
     }
 
     // ================= 3. עדכון מיקום =================
 
     [HttpPost("update-location")]
+    [Authorize(Roles = "Delivery")]
     public async Task<IActionResult> UpdateLocation([FromBody] CourierTrackingCreateDto dto)
     {
         await _trackingService.UpdateLocation(dto);
@@ -69,6 +74,7 @@ public class CourierController : ControllerBase
     // ================= 4. קבלת מיקום לפי הזמנה =================
 
     [HttpGet("order/{orderId}/location")]
+    [Authorize(Roles = "Customer,Delivery")]
     public async Task<IActionResult> GetOrderLocation(int orderId)
     {
         var result = await _trackingService.GetLocationByOrder(orderId);
