@@ -64,7 +64,7 @@ export default function Login() {
       // ניווט לפי role
       if (role === "Customer") navigate("/stores");
       else if (role === "Admin") navigate("/admin");
-      else if (role === "Courier") navigate("/courier");
+      else if (role === "Delivery") navigate("/courier");
       else navigate("/stores"); // fallback
 
     } catch (err) {
