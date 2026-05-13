@@ -7,6 +7,11 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [cardName, setCardName] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [cvv, setCvv] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,49 +19,31 @@ export default function Checkout() {
     setCart(saved);
   }, []);
 
-  // 1. המרת כתובת שהוקלדה לקואורדינטות (עבור הזמנה לחבר/כתובת אחרת)
   const getCoordinates = async (manualAddress) => {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(manualAddress)}`
     );
     const data = await res.json();
-    if (!data || data.length === 0) {
-      throw new Error("Address not found");
-    }
-    return {
-      lat: parseFloat(data[0].lat),
-      lng: parseFloat(data[0].lon),
-    };
+    if (!data || data.length === 0) throw new Error("כתובת לא נמצאה במערכת המפות");
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
   };
 
-  // 2. המרת קואורדינטות לכתובת טקסטואלית (עבור מיקום נוכחי)
   const getAddressFromCoords = async (lat, lng) => {
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-      );
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
       const data = await res.json();
-      return data.display_name || "Unknown Location";
+      return data.display_name || "מיקום נוכחי";
     } catch (err) {
-      return "Current Location (Address lookup failed)";
+      return "מיקום נוכחי";
     }
   };
 
-  // 3. שליפת מיקום ה-GPS של המכשיר
   const getCurrentLocation = () => {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject("GEOLOCATION_NOT_SUPPORTED");
-        return;
-      }
+      if (!navigator.geolocation) return reject("הדפדפן אינו תומך בגישה למיקום");
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        () => reject("LOCATION_DENIED")
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => reject("גישה למיקום נדחתה על ידי המשתמש")
       );
     });
   };
@@ -64,89 +51,82 @@ export default function Checkout() {
   const handleCheckout = async () => {
     setError("");
 
-    if (cart.length === 0) {
-      setError("Cart is empty");
+    if (cardNumber.length !== 16) {
+      setError("מספר כרטיס חייב להכיל בדיוק 16 ספרות.");
+      return;
+    }
+    const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+    if (!expiryRegex.test(expiry)) {
+      setError("פורמט תוקף לא תקין (MM/YY).");
+      return;
+    }
+    if (cvv.length < 3) {
+      setError("קוד CVV לא תקין.");
+      return;
+    }
+    if (!cardName.trim()) {
+      setError("נא להזין את שם בעל הכרטיס.");
       return;
     }
 
-    const storeId = cart[0]?.storeId;
-    const sameStore = cart.every(item => item.storeId === storeId);
-
-    if (!sameStore) {
-      setError("You can order from one store only");
+    if (cart.length === 0) {
+      setError("הסל שלך ריק.");
       return;
     }
 
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+      if (!token) { navigate("/login"); return; }
 
       let lat, lng, finalAddress;
 
-      // לוגיקה חכמה: אם הוקלדה כתובת - מחשבים קואורדינטות. אם ריק - לוקחים GPS וממירים לטקסט.
       if (address && address.trim() !== "") {
         const coords = await getCoordinates(address);
-        lat = coords.lat;
-        lng = coords.lng;
-        finalAddress = address; 
+        lat = coords.lat; lng = coords.lng;
+        finalAddress = address;
       } else {
         const coords = await getCurrentLocation();
-        lat = coords.lat;
-        lng = coords.lng;
-        // המרה לטקסט כדי שהשליח יראה כתובת ב-DB
+        lat = coords.lat; lng = coords.lng;
         finalAddress = await getAddressFromCoords(lat, lng);
       }
 
-      // בניית ה-DTO המדויק עבור ה-API ב-C#
-const dto = {
-  storeId: storeId,
-  deliveryLatitude: lat,       // התאמה ל-DeliveryLatitude
-  deliveryLongitude: lng,      // התאמה ל-DeliveryLongitude
-  address: finalAddress,       // התאמה ל-Address
-  orderItems: cart.map(item => ({
-    menuItemId: item.id,       // וודאי שב-OrderItemCreateDto השם הוא menuItemId
-    quantity: item.quantity
-  }))
-};
+      const dto = {
+        storeId: Number(cart[0]?.storeId),
+        deliveryLatitude: parseFloat(lat),
+        deliveryLongitude: parseFloat(lng),
+        address: finalAddress || "",
+        orderItems: cart.map(item => ({
+          menuItemId: Number(item.id),
+          quantity: Number(item.quantity)
+        }))
+      };
 
-      const response = await fetch("https://localhost:7234/api/orders", {
+      const response = await fetch("https://localhost:7234/api/Orders/create", { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(dto)
       });
 
-      let data = {};
-      try {
-        data = await response.json();
-      } catch (e) {}
-
-      if (!response.ok) {
-        setError(data.message || "Failed to create order");
-        return;
+      if (response.status === 401) {
+          throw new Error("אינך מחובר או שהחיבור פג תוקף");
       }
 
-      // הצלחה
+      if (!response.ok) {
+          const errorMsg = await response.text();
+          throw new Error(errorMsg || "נכשל ביצירת הזמנה");
+      }
+
       localStorage.removeItem("cart");
-      alert("Order created successfully!");
+      alert("התשלום בוצע בהצלחה וההזמנה התקבלה!");
       navigate("/my-orders");
 
     } catch (err) {
       console.error(err);
-      if (err === "LOCATION_DENIED") {
-        setError("Please allow location access or enter an address manually.");
-      } else if (err.message === "Address not found") {
-        setError("The address you entered could not be found.");
-      } else {
-        setError("An error occurred while processing your order.");
-      }
+      setError(err.message || "אירעה שגיאה בתהליך ההזמנה.");
     } finally {
       setLoading(false);
     }
@@ -156,16 +136,16 @@ const dto = {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Checkout</h1>
+      <h1 style={styles.title}>סיכום הזמנה ותשלום</h1>
 
       {error && <div style={styles.errorBox}>{error}</div>}
 
       <div style={styles.section}>
-        <h3>Delivery Details</h3>
-        <p style={styles.label}>Enter address for a friend, or leave empty for your current location:</p>
+        <h3>📍 פרטי משלוח</h3>
+        <p style={styles.label}>כתובת למשלוח (השאר ריק לשימוש ב-GPS):</p>
         <input
           type="text"
-          placeholder="Street, City, House Number..."
+          placeholder="עיר, רחוב ומספר בית..."
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           style={styles.input}
@@ -173,15 +153,54 @@ const dto = {
       </div>
 
       <div style={styles.section}>
-        <h3>Order Summary</h3>
+        <h3>💳 פרטי תשלום (סימולציה)</h3>
+        <input
+          type="text"
+          placeholder="שם בעל הכרטיס"
+          value={cardName}
+          onChange={(e) => setCardName(e.target.value)}
+          style={{...styles.input, marginBottom: "10px"}}
+        />
+        <input
+          type="text"
+          placeholder="מספר כרטיס (16 ספרות)"
+          value={cardNumber}
+          onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
+          style={{...styles.input, marginBottom: "10px"}}
+        />
+        <div style={{display: "flex", gap: "10px"}}>
+          <input
+            type="text"
+            placeholder="MM/YY"
+            value={expiry}
+            onChange={(e) => {
+              let v = e.target.value.replace(/\D/g, '');
+              if (v.length >= 2) v = v.slice(0, 2) + '/' + v.slice(2, 4);
+              setExpiry(v);
+            }}
+            maxLength="5"
+            style={styles.input}
+          />
+          <input
+            type="password"
+            placeholder="CVV"
+            value={cvv}
+            onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
+            style={styles.input}
+          />
+        </div>
+      </div>
+
+      <div style={styles.section}>
+        <h3>🛒 סיכום סל</h3>
         {cart.map(item => (
           <div key={item.id} style={styles.item}>
-            <span>{item.name} x {item.quantity}</span>
+            <span>{item.name} (x{item.quantity})</span>
             <span>₪{item.price * item.quantity}</span>
           </div>
         ))}
-        <hr />
-        <h2 style={styles.total}>Total: ₪{total}</h2>
+        <hr style={{border: '0.5px solid #eee'}} />
+        <h2 style={styles.total}>סה"כ לתשלום: ₪{total}</h2>
       </div>
 
       <button
@@ -189,20 +208,20 @@ const dto = {
         onClick={handleCheckout}
         disabled={loading}
       >
-        {loading ? "Processing..." : "Place Order Now"}
+        {loading ? "מעבד נתונים..." : "בצע הזמנה עכשיו"}
       </button>
     </div>
   );
 }
 
 const styles = {
-  container: { padding: "30px", maxWidth: "600px", margin: "0 auto", fontFamily: "Arial, sans-serif" },
-  title: { textAlign: "center", color: "#333" },
-  errorBox: { backgroundColor: "#fee2e2", color: "#b91c1c", padding: "10px", borderRadius: "5px", marginBottom: "20px", textAlign: "center" },
-  section: { marginBottom: "25px", padding: "20px", border: "1px solid #eee", borderRadius: "12px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" },
-  label: { fontSize: "14px", color: "#666", marginBottom: "8px" },
-  input: { width: "100%", padding: "12px", borderRadius: "6px", border: "1px solid #ddd", boxSizing: "border-box" },
-  item: { display: "flex", justifyContent: "space-between", marginBottom: "8px" },
-  total: { textAlign: "right", margin: "10px 0" },
-  button: { width: "100%", padding: "15px", backgroundColor: "#10b981", color: "white", border: "none", borderRadius: "8px", fontSize: "18px", fontWeight: "bold", cursor: "pointer" }
+  container: { padding: "30px", maxWidth: "550px", margin: "0 auto", fontFamily: "Segoe UI, sans-serif", direction: "rtl" },
+  title: { textAlign: "center", color: "#2d3748", marginBottom: "30px" },
+  errorBox: { backgroundColor: "#fff5f5", color: "#c53030", padding: "12px", borderRadius: "8px", marginBottom: "20px", textAlign: "center", border: "1px solid #feb2b2" },
+  section: { marginBottom: "20px", padding: "20px", backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #edf2f7" },
+  label: { fontSize: "13px", color: "#718096", marginBottom: "8px" },
+  input: { width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #e2e8f0", boxSizing: "border-box", outline: "none", transition: "border 0.2s" },
+  item: { display: "flex", justifyContent: "space-between", marginBottom: "10px", color: "#4a5568" },
+  total: { textAlign: "left", margin: "15px 0", color: "#2d3748" },
+  button: { width: "100%", padding: "16px", backgroundColor: "#38a169", color: "white", border: "none", borderRadius: "10px", fontSize: "18px", fontWeight: "bold", cursor: "pointer", transition: "all 0.3s" }
 };
