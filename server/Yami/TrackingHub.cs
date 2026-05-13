@@ -8,19 +8,19 @@ namespace Common.Hubs
     public class TrackingHub : Hub
     {
         /// <summary>
-        /// מופעל ברגע שהשליח מתחבר.
-        /// מצרף את השליח לקבוצה אישית על בסיס ה-UserId שלו.
+        /// מופעל בעת התחברות - מזהה את המשתמש ומצרף אותו לקבוצה אישית לקבלת הצעות (Waves).
         /// </summary>
         public override async Task OnConnectedAsync()
         {
-            // ניסיון שליפת ה-ID מה-Token בשתי דרכים (סטנדרטית ומותאמת אישית)
-            var userId1 = Context.UserIdentifier;
+            // חילוץ מזהה המשתמש מה-Token בדרכים שונות להבטחת תאימות
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                         ?? Context.User?.FindFirst("id")?.Value;
-            
+                         ?? Context.User?.FindFirst("id")?.Value
+                         ?? Context.UserIdentifier;
+
             if (!string.IsNullOrEmpty(userId))
             {
-                // שימוש בפורמט "user-{id}" כדי לסנכרן עם ה-OrderService
+                // יצירת קבוצה ייחודית: user-{id}
+                // שם הקבוצה חייב להתאים למה שמוגדר ב-OrderService
                 string groupName = $"user-{userId}";
                 await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
@@ -28,6 +28,7 @@ namespace Common.Hubs
             }
             else
             {
+                // אם המשתמש לא מזוהה, הוא לא יוכל לקבל הצעות אישיות
                 Console.WriteLine("[SignalR] Warning: Connection established without a valid User ID Claim.");
             }
 
@@ -35,12 +36,12 @@ namespace Common.Hubs
         }
 
         /// <summary>
-        /// הצטרפות לקבוצת מעקב של הזמנה ספציפית (עבור עדכוני מיקום חיים).
+        /// הצטרפות לקבוצת מעקב של הזמנה ספציפית (עבור הלקוח או החנות).
         /// </summary>
         public async Task JoinOrder(int orderId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"order-{orderId}");
-            Console.WriteLine($"[SignalR] Connection {Context.ConnectionId} joined order group: order-{orderId}");
+            Console.WriteLine($"[SignalR] Connection {Context.ConnectionId} joined tracking group: order-{orderId}");
         }
 
         /// <summary>
@@ -49,21 +50,27 @@ namespace Common.Hubs
         public async Task LeaveOrder(int orderId)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"order-{orderId}");
-            Console.WriteLine($"[SignalR] Connection {Context.ConnectionId} left order group: order-{orderId}");
+            Console.WriteLine($"[SignalR] Connection {Context.ConnectionId} left tracking group: order-{orderId}");
         }
 
         /// <summary>
-        /// עדכון מיקום השליח ושליחתו לכל מי שמאזין להזמנה הספציפית (לקוחות/מוקד).
+        /// הפצת מיקום השליח בזמן אמת לכל מי שמאזין להזמנה הספציפית.
         /// </summary>
         public async Task UpdateCourierLocation(int courierId, int orderId, double lat, double lng)
         {
-            // שליחה לכל חברי קבוצת ההזמנה
+            // שליחה לכל חברי קבוצת ה-order (לקוחות ומנהלים)
             await Clients.Group($"order-{orderId}")
-                .SendAsync("ReceiveCourierLocation", new { courierId, lat, lng, timestamp = DateTime.UtcNow });
+                .SendAsync("ReceiveCourierLocation", new
+                {
+                    courierId,
+                    lat,
+                    lng,
+                    timestamp = DateTime.UtcNow
+                });
         }
 
         /// <summary>
-        /// מופעל בעת ניתוק - SignalR מנקה קבוצות אוטומטית, אך ניתן להוסיף לוגיקה כאן.
+        /// ניקוי בעת ניתוק.
         /// </summary>
         public override async Task OnDisconnectedAsync(Exception? exception)
         {

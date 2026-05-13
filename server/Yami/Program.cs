@@ -24,6 +24,17 @@ namespace Yami
             // ===== 1. Services =====
             builder.Services.AddControllers();
             builder.Services.AddSignalR();
+            // הוספת תמיכה בהתעלמות מלולאות ב-JSON
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // התעלמות מקשרים מעגליים - זה ימנע את שגיאת ה-500 שקיבלת
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+
+                    // אופציונלי: הפיכת שמות השדות ב-JSON לאותיות קטנות (camelCase) אם זה לא קורה אוטומטית
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
+
             // רישום ה-Worker כדי שירוץ ברקע ברגע שהשרת עולה
             builder.Services.AddHostedService<OrderAssignmentWorker>();
 
@@ -98,7 +109,7 @@ namespace Yami
                     };
                 });
 
-            // ===== 5. CORS (מעודכן לפורט 5174) =====
+            // ===== 5. CORS =====
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("YamiPolicy", policy =>
@@ -106,12 +117,32 @@ namespace Yami
                     policy.WithOrigins("http://localhost:5174", "http://localhost:5173")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials(); // חובה כדי לאפשר העברת טוקנים ב-SignalR
+                          .AllowCredentials(); // חובה ל-SignalR
                 });
             });
 
             // ===== 6. Dependency Injection =====
+
+            // DB Context & Core Repositories
             builder.Services.AddScoped<IContext, YamiDbContext>();
+
+            // Specialized Repositories
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
+
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IRepository<User>, UserRepository>();
+
+            builder.Services.AddScoped<ICourierRepository, CouriersRepository>();
+            builder.Services.AddScoped<IRepository<Courier>, CouriersRepository>();
+
+            // Generic Repositories
+            builder.Services.AddScoped<IRepository<Menu>, MenusRepository>();
+            builder.Services.AddScoped<IRepository<Store>, StoreRepository>();
+            builder.Services.AddScoped<IRepository<Delivery>, DeliveryRepository>();
+            builder.Services.AddScoped<IRepository<DeliveryOrder>, DeliveryOrderRepository>();
+            builder.Services.AddScoped<IRepository<DeliveryOffer>, DeliveryOfferRepository>();
+            builder.Services.AddScoped<IRepository<CourierTracking>, CourierTrackingRepository>();
 
             // Services
             builder.Services.AddScoped<ITrackingService, TrackingService>();
@@ -120,21 +151,7 @@ namespace Yami
             builder.Services.AddScoped<IMenuService, MenuService>();
             builder.Services.AddScoped<IStoreService, StoreService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
-
-            // Repositories
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IRepository<User>, UserRepository>();
-            builder.Services.AddScoped<ICourierRepository, CouriersRepository>(); 
-            builder.Services.AddScoped<IRepository<Courier>, CouriersRepository>();
-            builder.Services.AddScoped<IRepository<Menu>, MenusRepository>();
-            builder.Services.AddScoped<IRepository<Store>, StoreRepository>();
-            builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
-            builder.Services.AddScoped<IRepository<Delivery>, DeliveryRepository>();
-            builder.Services.AddScoped<IRepository<DeliveryOrder>, DeliveryOrderRepository>();
-            builder.Services.AddScoped<IRepository<DeliveryOffer>, DeliveryOfferRepository>();
-            builder.Services.AddScoped<IRepository<CourierTracking>, CourierTrackingRepository>();
             builder.Services.AddScoped<ICourierMatchingService, CourierMatchingService>();
-            builder.Services.AddScoped<CourierMatchingService>(); // רישום נוסף לשימוש ישיר אם נדרש
 
             var app = builder.Build();
 
@@ -146,10 +163,10 @@ namespace Yami
                 app.UseSwaggerUI();
             }
 
-            // סדר ה-Middleware קריטי!
             app.UseHttpsRedirection();
 
-            app.UseCors("YamiPolicy"); // חייב להיות לפני Authentication
+            // סדר ה-Middleware קריטי!
+            app.UseCors("YamiPolicy");
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -167,8 +184,8 @@ namespace Yami
     {
         public string GetUserId(HubConnectionContext connection)
         {
-            // שואב את ה-Claim של ה-ID שהגדרת ב-AuthService בזמן יצירת הטוקן
-            return connection.User?.FindFirst("id")?.Value!;
+            return connection.User?.FindFirst("id")?.Value ??
+                   connection.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value!;
         }
     }
 }
