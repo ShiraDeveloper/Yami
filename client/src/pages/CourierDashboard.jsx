@@ -44,49 +44,52 @@ export default function CourierDashboard() {
     }, []);
 
     // --- ניהול חיבור SignalR ---
-    useEffect(() => {
-        let isMounted = true;
-        fetchTasks();
+useEffect(() => {
+    let isMounted = true;
+    const token = localStorage.getItem("token");
 
-        const token = localStorage.getItem("token");
-        if (!token) return;
+    if (!token) {
+        setLoading(false);
+        return;
+    }
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl(`${import.meta.env.VITE_API_URL}/trackingHub`, {
-                accessTokenFactory: () => token
-            })
-            .withAutomaticReconnect()
-            .build();
+    // יצירת החיבור פעם אחת בלבד
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${import.meta.env.VITE_API_URL}/trackingHub`, {
+            accessTokenFactory: () => token
+        })
+        .withAutomaticReconnect()
+        .build();
 
-        const startConnection = async () => {
-            try {
-                if (connection.state === signalR.HubConnectionState.Disconnected) {
-                    await connection.start();
-                    if (isMounted) {
-                        console.log("✅ SignalR Connected");
-                        connectionRef.current = connection;
-
-                        connection.on("NewOrderAssigned", (order) => {
-                            setNewOffer(order);
-                        });
-                    }
-                }
-            } catch (err) {
-                console.error("❌ SignalR Connection Error:", err);
-                if (isMounted) setTimeout(startConnection, 5000);
+    const startConnection = async () => {
+        try {
+            await connection.start();
+            if (isMounted) {
+                console.log("✅ SignalR Connected Successfully");
+                
+                // האזנה לאירוע - וודאי שזה השם המדויק שנשלח מהשרת
+                connection.on("NewOrderAssigned", (order) => {
+                    console.log("New Wave Received:", order);
+                    setNewOffer(order);
+                });
             }
-        };
+        } catch (err) {
+            console.error("❌ SignalR Connection Error:", err);
+            if (isMounted) setTimeout(startConnection, 5000);
+        }
+    };
 
-        startConnection();
+    startConnection();
+    fetchTasks(); // שליפת המשימות הקיימות
 
-        return () => {
-            isMounted = false;
-            if (connection.state === signalR.HubConnectionState.Connected) {
-                connection.stop();
-            }
-        };
-    }, [fetchTasks]);
-
+    // Cleanup: סגירת החיבור כשהקומפוננטה יורדת מהמסך
+    return () => {
+        isMounted = false;
+        if (connection.state === signalR.HubConnectionState.Connected) {
+            connection.stop();
+        }
+    };
+}, []); // מערך תלויות ריק הוא קריטי כאן!
     // --- אישור הצעת משלוח (הגל) ---
     const handleAcceptOffer = async (orderId) => {
         const token = localStorage.getItem("token");

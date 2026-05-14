@@ -16,19 +16,20 @@ namespace Repository.Repositories
         {
             ctx = context;
         }
+
         public async Task<DeliveryOrder> Add(DeliveryOrder entity)
         {
-            ctx.DeliveryOffer.Add(entity);
+            ctx.DeliveryOrder.Add(entity);
             await ctx.Save();
             return entity;
         }
 
         public async Task<DeliveryOrder> Delete(int id)
         {
-            var d = await ctx.DeliveryOffer.FirstOrDefaultAsync(x => x.Id == id);
+            var d = await ctx.DeliveryOrder.FirstOrDefaultAsync(x => x.Id == id);
             if (d != null)
             {
-                ctx.DeliveryOffer.Remove(d);
+                ctx.DeliveryOrder.Remove(d);
                 await ctx.Save();
                 return d;
             }
@@ -37,17 +38,17 @@ namespace Repository.Repositories
 
         public Task<List<DeliveryOrder>> GetAll()
         {
-            return ctx.DeliveryOffer.ToListAsync();
+            return ctx.DeliveryOrder.ToListAsync();
         }
 
         public async Task<DeliveryOrder> GetById(int id)
         {
-            return await ctx.DeliveryOffer.FirstOrDefaultAsync(x => x.Id == id);
+            return await ctx.DeliveryOrder.FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<DeliveryOrder> Update(DeliveryOrder entity)
         {
-            var existingDeliveryOrder = await ctx.DeliveryOffer.FirstOrDefaultAsync(x => x.Id == entity.Id);
+            var existingDeliveryOrder = await ctx.DeliveryOrder.FirstOrDefaultAsync(x => x.Id == entity.Id);
             if (existingDeliveryOrder == null)
                 return null;
             existingDeliveryOrder.Id = entity.Id;

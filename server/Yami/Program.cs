@@ -173,6 +173,7 @@ namespace Yami
 
             // ===== 8. Endpoints =====
             app.MapHub<TrackingHub>("/trackingHub");
+            app.MapHub<TrackingHub>("/orderHub");
             app.MapControllers();
 
             app.Run();

@@ -16,10 +16,10 @@ namespace Repository.Interfaces
         public DbSet<User> Users { get; set; }
         public DbSet<Menu> Menus { get; set; }
         public DbSet<Delivery> Delivery { get; set; }
-        public DbSet<DeliveryOrder> DeliveryOffer { get; set; }
         public DbSet<OrderItem> OrderItem { get; set; }
         public DbSet<CourierTracking> CourierTracking { get; set; }
-        public DbSet<DeliveryOffer> DeliveryOffers { get; set; }
+        public DbSet<DeliveryOffer> DeliveryOffer { get; set; }
+        public DbSet<DeliveryOrder> DeliveryOrder { get; set; }
         Task Save();
         Task<int> SaveChangesAsync();
     }
