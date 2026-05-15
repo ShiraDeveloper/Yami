@@ -50,7 +50,7 @@ namespace Yami.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Couriers");
+                    b.ToTable("Couriers", (string)null);
                 });
 
             modelBuilder.Entity("CourierTracking", b =>
@@ -82,7 +82,7 @@ namespace Yami.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("CourierTracking");
+                    b.ToTable("CourierTracking", (string)null);
                 });
 
             modelBuilder.Entity("Delivery", b =>
@@ -106,7 +106,7 @@ namespace Yami.Migrations
 
                     b.HasIndex("CourierId");
 
-                    b.ToTable("Delivery");
+                    b.ToTable("Delivery", (string)null);
                 });
 
             modelBuilder.Entity("DeliveryOffer", b =>
@@ -126,9 +126,6 @@ namespace Yami.Migrations
                     b.Property<int>("DeliveryOrderId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("DeliveryOrderId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("OfferedAt")
                         .HasColumnType("datetime2");
 
@@ -138,9 +135,7 @@ namespace Yami.Migrations
 
                     b.HasIndex("DeliveryOrderId");
 
-                    b.HasIndex("DeliveryOrderId1");
-
-                    b.ToTable("DeliveryOffer");
+                    b.ToTable("DeliveryOffers", (string)null);
                 });
 
             modelBuilder.Entity("DeliveryOrder", b =>
@@ -175,7 +170,7 @@ namespace Yami.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("DeliveryOrder");
+                    b.ToTable("DeliveryOffer", (string)null);
                 });
 
             modelBuilder.Entity("Menu", b =>
@@ -206,7 +201,7 @@ namespace Yami.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("Menus");
+                    b.ToTable("Menus", (string)null);
                 });
 
             modelBuilder.Entity("Order", b =>
@@ -262,7 +257,7 @@ namespace Yami.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("OrderItem", b =>
@@ -288,7 +283,7 @@ namespace Yami.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItem");
+                    b.ToTable("OrderItem", (string)null);
                 });
 
             modelBuilder.Entity("Repository.Entities.User", b =>
@@ -328,7 +323,7 @@ namespace Yami.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Store", b =>
@@ -372,7 +367,7 @@ namespace Yami.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Stores");
+                    b.ToTable("Stores", (string)null);
                 });
 
             modelBuilder.Entity("Courier", b =>
@@ -408,7 +403,7 @@ namespace Yami.Migrations
                     b.HasOne("Courier", "Courier")
                         .WithMany("Deliveries")
                         .HasForeignKey("CourierId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Courier");
@@ -423,14 +418,10 @@ namespace Yami.Migrations
                         .IsRequired();
 
                     b.HasOne("DeliveryOrder", "DeliveryOrder")
-                        .WithMany()
-                        .HasForeignKey("DeliveryOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DeliveryOrder", null)
                         .WithMany("DeliveryOffers")
-                        .HasForeignKey("DeliveryOrderId1");
+                        .HasForeignKey("DeliveryOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Courier");
 
@@ -498,7 +489,7 @@ namespace Yami.Migrations
                     b.HasOne("Menu", "Menu")
                         .WithMany()
                         .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Order", "Order")
