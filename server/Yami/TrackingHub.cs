@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System;
 using System.Threading.Tasks;
 
-
 namespace Common.Hubs
 {
+    // ה-Attribute הזה חוסם חיבורים אנונימיים ומבטיח ש-Context.User לעולם לא יהיה ריק
+    [Authorize]
     public class TrackingHub : Hub
     {
         /// <summary>
@@ -13,9 +15,11 @@ namespace Common.Hubs
         /// </summary>
         public override async Task OnConnectedAsync()
         {
-            // חילוץ ה-ID מתוך ה-Token (ClaimTypes.NameIdentifier)
+            // חילוץ ה-ID מתוך ה-Token עם כיסוי מלא לכל סוגי ה-Claims הנפוצים (id, sub, NameIdentifier)
             var userId = Context.User?.FindFirst("id")?.Value
-                          ?? Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                         ?? Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? Context.User?.FindFirst("sub")?.Value;
+
             if (!string.IsNullOrEmpty(userId))
             {
                 string groupName = $"user-{userId}";
@@ -24,11 +28,13 @@ namespace Common.Hubs
             }
             else
             {
-                Console.WriteLine("[SignalR] Warning: User ID not found in Token.");
+                // הודעה זו לא אמורה להופיע יותר בזכות ה-[Authorize]
+                Console.WriteLine("[SignalR] Warning: User ID not found in Token despite Authorization.");
             }
 
             await base.OnConnectedAsync();
         }
+
         /// <summary>
         /// הצטרפות לקבוצת מעקב של הזמנה ספציפית (עבור הלקוח או החנות).
         /// </summary>

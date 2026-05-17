@@ -22,16 +22,13 @@ namespace Yami
             var builder = WebApplication.CreateBuilder(args);
 
             // ===== 1. Services =====
-            builder.Services.AddControllers();
             builder.Services.AddSignalR();
-            // הוספת תמיכה בהתעלמות מלולאות ב-JSON
+
+            // הוספת תמיכה בהתעלמות מלולאות ב-JSON (מאוחד ונקי)
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
-                    // התעלמות מקשרים מעגליים - זה ימנע את שגיאת ה-500 שקיבלת
                     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-
-                    // אופציונלי: הפיכת שמות השדות ב-JSON לאותיות קטנות (camelCase) אם זה לא קורה אוטומטית
                     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 });
 
@@ -99,8 +96,9 @@ namespace Yami
                             var accessToken = context.Request.Query["access_token"];
                             var path = context.HttpContext.Request.Path;
 
+                            // התיקון כאן: מאפשר חילוץ טוקן לכל נתיב של ה-Hubs שלך באופן גורף
                             if (!string.IsNullOrEmpty(accessToken) &&
-                                path.StartsWithSegments("/trackingHub"))
+                                (path.StartsWithSegments("/trackingHub") || path.StartsWithSegments("/orderHub")))
                             {
                                 context.Token = accessToken;
                             }
@@ -122,11 +120,8 @@ namespace Yami
             });
 
             // ===== 6. Dependency Injection =====
-
-            // DB Context & Core Repositories
             builder.Services.AddScoped<IContext, YamiDbContext>();
 
-            // Specialized Repositories
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
 
@@ -136,7 +131,6 @@ namespace Yami
             builder.Services.AddScoped<ICourierRepository, CouriersRepository>();
             builder.Services.AddScoped<IRepository<Courier>, CouriersRepository>();
 
-            // Generic Repositories
             builder.Services.AddScoped<IRepository<Menu>, MenusRepository>();
             builder.Services.AddScoped<IRepository<Store>, StoreRepository>();
             builder.Services.AddScoped<IRepository<Delivery>, DeliveryRepository>();
@@ -144,7 +138,6 @@ namespace Yami
             builder.Services.AddScoped<IRepository<DeliveryOffer>, DeliveryOfferRepository>();
             builder.Services.AddScoped<IRepository<CourierTracking>, CourierTrackingRepository>();
 
-            // Services
             builder.Services.AddScoped<ITrackingService, TrackingService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -156,7 +149,6 @@ namespace Yami
             var app = builder.Build();
 
             // ===== 7. Middleware =====
-
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -173,7 +165,7 @@ namespace Yami
 
             // ===== 8. Endpoints =====
             app.MapHub<TrackingHub>("/trackingHub");
-            app.MapHub<TrackingHub>("/orderHub");
+            app.MapHub<TrackingHub>("/orderHub"); // נשאר כאן למקרה שקומפוננטות אחרות תלויות בו, אך כעת הוא מאובטח ומחלץ טוקן
             app.MapControllers();
 
             app.Run();
@@ -186,7 +178,8 @@ namespace Yami
         public string GetUserId(HubConnectionContext connection)
         {
             return connection.User?.FindFirst("id")?.Value ??
-                   connection.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value!;
+                   connection.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ??
+                   connection.User?.FindFirst("sub")?.Value!;
         }
     }
 }

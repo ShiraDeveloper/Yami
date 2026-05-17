@@ -84,4 +84,46 @@ public class CourierController : ControllerBase
 
         return Ok(result);
     }
+    // ================= 5. ניהול זמינות שליח (מחובר/מנותק) =================
+
+    [HttpGet("availability-status")]
+    public async Task<IActionResult> GetAvailabilityStatus()
+    {
+        // חילוץ ה-UserId מהטוקן של השליח המחובר
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier) ?? User.FindFirst("id");
+        if (userIdClaim == null) return Unauthorized();
+        int userId = int.Parse(userIdClaim.Value);
+
+        var couriers = await _courierRepository.GetAll();
+        var courier = couriers.FirstOrDefault(c => c.UserId == userId);
+
+        if (courier == null)
+            return NotFound("Courier profile not found for this user");
+
+        return Ok(new { isAvailable = courier.IsAvailable });
+    }
+
+    [HttpPost("toggle-availability")]
+    [Authorize(Roles = "Delivery")]
+    public async Task<IActionResult> ToggleAvailability()
+    {
+        // חילוץ ה-UserId מהטוקן
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier) ?? User.FindFirst("id");
+        if (userIdClaim == null) return Unauthorized();
+        int userId = int.Parse(userIdClaim.Value);
+
+        var couriers = await _courierRepository.GetAll();
+        var courier = couriers.FirstOrDefault(c => c.UserId == userId);
+
+        if (courier == null)
+            return NotFound("Courier profile not found");
+
+        // היפוך הסטטוס
+        courier.IsAvailable = !courier.IsAvailable;
+
+        // עדכון באמצעות ה-Repository הקיים שלך
+        await _courierRepository.Update(courier);
+
+        return Ok(new { isAvailable = courier.IsAvailable, message = "Status updated successfully" });
+    }
 }

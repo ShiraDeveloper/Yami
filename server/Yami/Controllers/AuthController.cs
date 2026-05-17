@@ -14,14 +14,16 @@ namespace Yami.Controllers
             _authService = authService;
         }
 
-        public record LoginRequest(string Email, string Password);
+        // הוספת RememberMe כחלק מהגוף של הבקשה
+        public record LoginRequest(string Email, string Password, bool RememberMe);
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
             {
-                var token = await _authService.Login(request.Email, request.Password);
+                // העברת פרמטר rememberMe לשירות הליבה
+                var token = await _authService.Login(request.Email, request.Password, request.RememberMe);
 
                 // אם השרות החזיר null, סימן שהפרטים שגויים
                 if (token == null)
