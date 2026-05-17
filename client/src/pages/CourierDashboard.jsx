@@ -3,10 +3,8 @@ import * as signalR from "@microsoft/signalr";
 
 const styles = {
     appContainer: { direction: "rtl", backgroundColor: "#F8F9FA", minHeight: "100vh", fontFamily: 'system-ui, -apple-system, sans-serif' },
-    navbar: { display: "flex", justifyContent: "space-between", padding: "15px", backgroundColor: "#FFF", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" },
-    brand: { fontWeight: "800", fontSize: "1.2rem", color: "#1A1A1A" },
-    taskCard: { backgroundColor: "#FFF", borderRadius: "20px", padding: "20px", margin: "15px", boxShadow: "0 5px 15px rgba(0,0,0,0.05)" },
-    offerCard: { backgroundColor: "#FFFDE7", borderRadius: "20px", padding: "20px", margin: "15px", border: "2px solid #FBC02D", boxShadow: "0 5px 15px rgba(0,0,0,0.1)" },
+    taskCard: { backgroundColor: "#FFF", borderRadius: "20px", padding: "20px", margin: "15px", boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)" },
+    offerCard: { backgroundColor: "#FFFDE7", borderRadius: "20px", padding: "20px", margin: "15px", border: "2px solid #FBC02D", boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)" },
     primaryBtn: { width: "100%", padding: "15px", backgroundColor: "#1A1A1A", color: "#FFF", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "10px" },
     secondaryBtn: { width: "100%", padding: "15px", backgroundColor: "#F1F1F1", color: "#333", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "10px" },
     loader: { textAlign: "center", marginTop: "50px", fontSize: "1.2rem", color: "#666" }
@@ -15,25 +13,45 @@ const styles = {
 export default function CourierDashboard() {
     const [tasks, setTasks] = useState([]);
     const [newOffer, setNewOffer] = useState(null);
+    const [isAvailable, setIsAvailable] = useState(false);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
     const connectionRef = useRef(null);
 
-    // --- שליפת משימות פעילות (המסלול שלי) ---
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7234";
+
+    // --- שליפת מצב זמינות נוכחי מהשרת ---
+    const fetchAvailabilityStatus = useCallback(async () => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/Courier/availability-status`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setIsAvailable(data.isAvailable);
+            }
+        } catch (err) {
+            console.error("Error fetching availability status:", err);
+        }
+    }, [API_BASE_URL]);
+
+    // --- שליפת משימות פעילות ---
     const fetchTasks = useCallback(async () => {
         const token = localStorage.getItem("token");
         if (!token) return;
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/Orders/my-route`, {
+            const res = await fetch(`${API_BASE_URL}/api/Orders/my-route`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            
+
             if (res.ok) {
                 const data = await res.json();
                 setTasks(data);
             } else if (res.status === 400) {
-                // במקרה שהמשתמש עוד לא מוגדר כשליח - נציג רשימה ריקה
                 setTasks([]);
             }
         } catch (err) {
@@ -41,67 +59,134 @@ export default function CourierDashboard() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [API_BASE_URL]);
 
-    // --- ניהול חיבור SignalR ---
-useEffect(() => {
-    let isMounted = true;
-    const token = localStorage.getItem("token");
+    // --- הבאת נתונים ראשונית ---
+    useEffect(() => {
+        const initializeDashboard = async () => {
+            await fetchAvailabilityStatus();
+            await fetchTasks();
+        };
+        initializeDashboard();
+    }, [fetchTasks, fetchAvailabilityStatus]);
 
-    if (!token) {
-        setLoading(false);
-        return;
-    }
+    useEffect(() => {
+        let isMounted = true;
+        let retryTimeout = null;
 
-    // יצירת החיבור פעם אחת בלבד
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${import.meta.env.VITE_API_URL}/trackingHub`, {
-            accessTokenFactory: () => token
-        })
-        .withAutomaticReconnect()
-        .build();
+        const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
 
-    const startConnection = async () => {
-        try {
-            await connection.start();
-            if (isMounted) {
-                console.log("✅ SignalR Connected Successfully");
-                
-                // האזנה לאירוע - וודאי שזה השם המדויק שנשלח מהשרת
-                connection.on("NewOrderAssigned", (order) => {
-                    console.log("New Wave Received:", order);
-                    setNewOffer(order);
-                });
+        if (!token || !userId) {
+            console.error("Missing token or userId");
+            setLoading(false);
+            return;
+        }
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(`${API_BASE_URL}/trackingHub`, {
+                accessTokenFactory: () => token
+            })
+            .withAutomaticReconnect()
+            .build();
+
+        connectionRef.current = connection;
+
+        // ====== EVENTS ======
+        connection.on("NewOrderAssigned", (order) => {
+            console.log("📩 New order received:", order);
+
+            if (!isMounted || !isAvailable) return;
+
+            setNewOffer(order);
+
+            try {
+                const audio = new Audio("/sounds/notification.mp3");
+                audio.volume = 1.0;
+                audio.play();
+            } catch (err) {
+                console.error("Audio error:", err);
             }
-        } catch (err) {
-            console.error("❌ SignalR Connection Error:", err);
-            if (isMounted) setTimeout(startConnection, 5000);
-        }
-    };
+        });
 
-    startConnection();
-    fetchTasks(); // שליפת המשימות הקיימות
+        connection.on("OrderTaken", (data) => {
+    console.log("❌ Order taken:", data);
 
-    // Cleanup: סגירת החיבור כשהקומפוננטה יורדת מהמסך
-    return () => {
-        isMounted = false;
-        if (connection.state === signalR.HubConnectionState.Connected) {
-            connection.stop();
+    setNewOffer(prev => {
+        if (prev?.orderId === data.orderId) {
+            return null;
         }
-    };
-}, []); // מערך תלויות ריק הוא קריטי כאן!
-    // --- אישור הצעת משלוח (הגל) ---
+        return prev;
+    });
+});
+
+        connection.onclose(() => {
+            console.warn("🔌 SignalR disconnected");
+        });
+
+        // ====== START CONNECTION ======
+        const startConnection = async () => {
+            try {
+                if (connection.state !== signalR.HubConnectionState.Disconnected) {
+                    console.log("⚠️ Connection already started or connecting:", connection.state);
+                    return;
+                }
+
+                console.log("⏳ Connecting SignalR...");
+
+                await connection.start();
+
+                console.log("✅ SignalR connected");
+
+                await connection.invoke("JoinCourierGroup", Number(userId));
+
+                console.log("👥 Joined group:", userId);
+
+            } catch (err) {
+                console.error("❌ SignalR connection error:", err);
+
+                retryTimeout = setTimeout(() => {
+                    startConnection();
+                }, 5000);
+            }
+        };
+
+        if (isAvailable) {
+            startConnection();
+        }
+
+        // ====== CLEANUP ======
+        return () => {
+            isMounted = false;
+
+            if (retryTimeout) {
+                clearTimeout(retryTimeout);
+            }
+
+            if (connection) {
+                connection.off("NewOrderAssigned");
+
+                connection.stop()
+                    .then(() => console.log("🛑 SignalR stopped"))
+                    .catch(err => console.error("Stop error:", err));
+            }
+        };
+
+    }, [API_BASE_URL, isAvailable]);
+
+
+    // --- אישור הצעת משלוח ---
     const handleAcceptOffer = async (orderId) => {
         const token = localStorage.getItem("token");
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/Orders/accept/${orderId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/Orders/accept/${orderId}`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             if (res.ok) {
                 setNewOffer(null);
-                await fetchTasks(); // רענון מידי להצגת המשימה בלוח
+                await fetchTasks();
             } else {
                 alert("ההזמנה כבר נלקחה על ידי שליח אחר");
                 setNewOffer(null);
@@ -111,7 +196,12 @@ useEffect(() => {
         }
     };
 
-    // --- עדכון סטטוס משימה (איסוף/מסירה) ---
+    // --- דחיית הצעת משלוח ---
+    const handleRejectOffer = () => {
+        setNewOffer(null);
+    };
+
+  // --- עדכון סטטוס משימה ---
     const handleCompleteTask = async () => {
         const token = localStorage.getItem("token");
         const currentTask = tasks[currentIndex];
@@ -119,67 +209,96 @@ useEffect(() => {
 
         const orderId = currentTask.orderId || currentTask.id;
 
+        console.log("✅ Completing task:", currentTask);
+
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/Orders/complete-task/${orderId}`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}` 
-                },
-                body: JSON.stringify({ type: currentTask.type })
-            });
+            const res = await fetch(
+                `${API_BASE_URL}/api/Orders/complete-task/${orderId}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({   status: 3 }),// סוג 3 מסמן השלמת משימה (איסוף או מסירה)
+                }
+            );
 
             if (res.ok) {
-                await fetchTasks();
-                setCurrentIndex(0); // חזרה למשימה הראשונה ברשימה המעודכנת
+                // מסיר את המשימה שהושלמה מיד מהמסך
+                setTasks((prev) => {
+                    const updated = prev.filter(
+                        (t) => (t.orderId || t.id) !== orderId
+                    );
+
+                    // התאמת אינדקס כדי שלא ייצא מהטווח
+                    if (updated.length === 0) {
+                        setCurrentIndex(0);
+                    } else if (currentIndex >= updated.length) {
+                        setCurrentIndex(updated.length - 1);
+                    }
+
+                    return updated;
+                });
+            } else {
+                console.error("Failed to complete task");
             }
         } catch (err) {
             console.error("Update task error:", err);
         }
     };
 
-    if (loading) return <div style={styles.loader}>מתחבר למערכת YAMI...</div>;
+    if (loading && tasks.length === 0 && !newOffer) {
+        return <div style={styles.loader}>מתחבר למערכת YAMI...</div>;
+    }
+
+    const currentTask = tasks[currentIndex];
 
     return (
         <div style={styles.appContainer}>
-            <nav style={styles.navbar}>
-                <div style={styles.brand}>Yami Courier</div>
-                <div style={{fontSize: "0.9rem", color: "#666"}}>מחובר</div>
-            </nav>
 
-            {/* חלונית הצעה חדשה (Wave) */}
-            {newOffer && (
+            {/* חלונית הצעה חדשה */}
+            {isAvailable && newOffer && (
                 <div style={styles.offerCard}>
-                    <div style={{color: "#FBC02D", fontWeight: "bold", marginBottom: "5px"}}>⚡ הזמנה חדשה זמינה!</div>
-                    <h3 style={{margin: "0 0 10px 0"}}>{newOffer.storeName}</h3>
-                    <p style={{fontSize: "0.9rem", margin: "5px 0"}}>איסוף מ: {newOffer.storeAddress}</p>
-                    <div style={{display: "flex", gap: "10px", marginTop: "15px"}}>
+                    <div style={{ color: "#FBC02D", fontWeight: "bold", marginBottom: "5px" }}>⚡ הזמנה חדשה זמינה!</div>
+                    <h3 style={{ margin: "0 0 10px 0" }}>{newOffer.storeName}</h3>
+                    <p style={{ fontSize: "0.9rem", margin: "5px 0" }}>איסוף מ: {newOffer.storeAddress}</p>
+                    <p style={{ fontSize: "0.85rem", color: "#555", margin: "5px 0" }}>נפח הזמנה: {newOffer.totalVolume}</p>
+                    <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
                         <button onClick={() => handleAcceptOffer(newOffer.orderId)} style={styles.primaryBtn}>אשר הגעה</button>
-                        <button onClick={() => setNewOffer(null)} style={styles.secondaryBtn}>דחה</button>
+                        <button onClick={handleRejectOffer} style={styles.secondaryBtn}>דחה</button>
                     </div>
                 </div>
             )}
 
             {/* רשימת משימות פעילה */}
-            {tasks.length > 0 ? (
+            {isAvailable && tasks.length > 0 && currentTask ? (
                 <div style={styles.taskCard}>
-                    <div style={{marginBottom: "15px"}}>
-                        <span style={{backgroundColor: "#E3F2FD", color: "#1976D2", padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase"}}>
-                            {tasks[currentIndex].type === 'pickup' ? "שלב 1: איסוף" : "שלב 2: מסירה"}
+                    <div style={{ marginBottom: "15px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>     
+                        <span style={{ backgroundColor: "#E3F2FD", color: "#1976D2", padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase" }}>
+                            {currentTask.type === 'pickup' ? "שלב 1: איסוף" : "שלב 2: מסירה"}
                         </span>
+                         <span>#{currentTask.id}</span>
                     </div>
-                    <h2 style={{margin: "0 0 5px 0", fontSize: "1.5rem"}}>{tasks[currentIndex].address}</h2>
-                    <p style={{color: "#666", marginBottom: "25px"}}>{tasks[currentIndex].customerName || "לקוח Yami"}</p>
-                    
+                    <h2 style={{ margin: "0 0 5px 0", fontSize: "1.5rem" }}>{currentTask.address}</h2>
+                    <p style={{ color: "#666", marginBottom: "25px" }}>{currentTask.customerName || "לקוח Yami"}</p>
+
                     <button onClick={handleCompleteTask} style={styles.primaryBtn}>
-                        אישור {tasks[currentIndex].type === 'pickup' ? "ביצוע איסוף" : "ביצוע מסירה"}
+                        אישור {currentTask.type === 'pickup' ? "ביצוע איסוף" : "ביצוע מסירה"}
                     </button>
                 </div>
-            ) : !newOffer && (
-                <div style={{textAlign: "center", padding: "60px 20px", color: "#BBB"}}>
-                    <div style={{fontSize: "4rem", marginBottom: "15px"}}>🛵</div>
-                    <p style={{fontSize: "1.1rem"}}>אין משימות כרגע.<br/>ברגע שתתקבל הזמנה, היא תופיע כאן.</p>
-                </div>
+            ) : (
+                !newOffer && (
+                    <div style={{ textAlign: "center", padding: "60px 20px", color: "#BBB" }}>
+
+                        <div style={{ fontSize: "4rem", marginBottom: "15px" }}>
+                            {isAvailable ? "🛵" : "💤"}
+                        </div>
+                        <p style={{ fontSize: "1.1rem" }}>
+                            {isAvailable ? "אין משימות כרגע.\nברגע שתתקבל הזמנה, היא תופיע כאן." : "מערכת מנותקת"}
+                        </p>
+                    </div>
+                )
             )}
         </div>
     );

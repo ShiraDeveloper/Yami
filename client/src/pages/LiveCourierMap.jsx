@@ -108,7 +108,7 @@ export default function LiveCourierMap({ orderId }) {
         <Polyline
           key={id}
           path={[pos, customerLocation]}
-          options={{ strokeColor: "#2563eb", strokeWeight: 4 }}
+          options={{ strokeColor: "#7B8FF5", strokeWeight: 4 }}
         />
       ))}
     </GoogleMap>

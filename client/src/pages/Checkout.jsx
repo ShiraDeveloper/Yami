@@ -136,9 +136,7 @@ export default function Checkout() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>סיכום הזמנה ותשלום</h1>
-
-      {error && <div style={styles.errorBox}>{error}</div>}
+      <h1 style={styles.title}>סיכום הזמנה ותשלום</h1>      
 
       <div style={styles.section}>
         <h3>📍 פרטי משלוח</h3>
@@ -203,8 +201,10 @@ export default function Checkout() {
         <h2 style={styles.total}>סה"כ לתשלום: ₪{total}</h2>
       </div>
 
+      {error && <div style={styles.errorBox}>{error}</div>}
+
       <button
-        style={loading ? {...styles.button, backgroundColor: '#ccc'} : styles.button}
+        style={loading ? {...styles.button, backgroundColor: '#E5E9F2'} : styles.button}
         onClick={handleCheckout}
         disabled={loading}
       >
@@ -218,7 +218,7 @@ const styles = {
   container: { padding: "30px", maxWidth: "550px", margin: "0 auto", fontFamily: "Segoe UI, sans-serif", direction: "rtl" },
   title: { textAlign: "center", color: "#2d3748", marginBottom: "30px" },
   errorBox: { backgroundColor: "#fff5f5", color: "#c53030", padding: "12px", borderRadius: "8px", marginBottom: "20px", textAlign: "center", border: "1px solid #feb2b2" },
-  section: { marginBottom: "20px", padding: "20px", backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #edf2f7" },
+  section: { marginBottom: "20px", padding: "20px", backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)", border: "1px solid #edf2f7" },
   label: { fontSize: "13px", color: "#718096", marginBottom: "8px" },
   input: { width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #e2e8f0", boxSizing: "border-box", outline: "none", transition: "border 0.2s" },
   item: { display: "flex", justifyContent: "space-between", marginBottom: "10px", color: "#4a5568" },

@@ -68,16 +68,16 @@ const styles = {
   container: { padding: "20px", maxWidth: "500px", margin: "0 auto" },
   header: { marginBottom: "20px", fontSize: "0.9rem", color: "#666" },
   progressBar: { height: "8px", backgroundColor: "#eee", borderRadius: "4px", marginTop: "5px" },
-  progress: { height: "100%", backgroundColor: "#4e73df", borderRadius: "4px", transition: "width 0.3s" },
+  progress: { height: "100%", backgroundColor: "#7B8FF5", borderRadius: "4px", transition: "width 0.3s" },
   card: { 
     backgroundColor: "white", padding: "20px", borderRadius: "12px", 
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)", border: "1px solid #ddd" 
+    boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)", border: "1px solid #ddd" 
   },
-  title: { margin: "0 0 15px 0", color: "#2c3e50" },
+  title: { margin: "0 0 15px 0", color: "#1F2937" },
   address: { fontSize: "1.1rem", marginBottom: "10px" },
   actions: { display: "flex", flexDirection: "column", gap: "12px", marginTop: "20px" },
-  navBtn: { padding: "12px", backgroundColor: "#27ae60", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" },
-  completeBtn: { padding: "12px", backgroundColor: "#4e73df", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" },
-  nextTaskSmall: { marginTop: "15px", textAlign: "center", fontSize: "0.8rem", color: "#888", fontStyle: "italic" },
-  completed: { textAlign: "center", padding: "50px", fontSize: "1.5rem", fontWeight: "bold", color: "#27ae60" }
+  navBtn: { padding: "12px", backgroundColor: "#10B981", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" },
+  completeBtn: { padding: "12px", backgroundColor: "#7B8FF5", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" },
+  nextTaskSmall: { marginTop: "15px", textAlign: "center", fontSize: "0.8rem", color: "#6B7280", fontStyle: "italic" },
+  completed: { textAlign: "center", padding: "50px", fontSize: "1.5rem", fontWeight: "bold", color: "#10B981" }
 };

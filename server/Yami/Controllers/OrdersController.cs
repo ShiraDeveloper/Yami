@@ -167,7 +167,7 @@ namespace Yami.Controllers
             }
         }
     }
-        public class StatusUpdateDto
+    public class StatusUpdateDto
     {
         public OrderStatus Status { get; set; }
     }

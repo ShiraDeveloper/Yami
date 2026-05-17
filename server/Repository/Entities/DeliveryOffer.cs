@@ -1,16 +1,22 @@
-﻿using System.Diagnostics.Metrics;
+﻿using Repository.Entities;
 
 public class DeliveryOffer
 {
     public int Id { get; set; }
 
-    public int DeliveryOrderId { get; set; }
-    public DeliveryOrder DeliveryOrder { get; set; }
+    // ההזמנה שעליה נשלחה ההצעה
+    public int OrderId { get; set; }
+    public Order Order { get; set; }
 
+    // השליח שקיבל את ההצעה
     public int CourierId { get; set; }
     public Courier Courier { get; set; }
 
+    // זמן שליחת ההצעה
     public DateTime OfferedAt { get; set; } = DateTime.UtcNow;
 
-    public bool? Accepted { get; set; }  // null = לא ענה עדיין, true = קיבל, false = דחה
+    // null = עדיין לא ענה
+    // true = קיבל
+    // false = דחה
+    public bool? Accepted { get; set; }
 }

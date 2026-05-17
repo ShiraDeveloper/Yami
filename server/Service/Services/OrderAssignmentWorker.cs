@@ -35,7 +35,7 @@ public class OrderAssignmentWorker : BackgroundService
                     var stuckOrders = await context.Orders
                         .Where(o => o.Status == OrderStatus.Approved &&
                                     o.CourierId == null &&
-                                    !context.DeliveryOffer.Any(doff => doff.DeliveryOrderId == o.Id && doff.Accepted == null))
+                                    !context.DeliveryOffer.Any(doff => doff.OrderId == o.Id && doff.Accepted == null))
                         .ToListAsync();
 
                     foreach (var order in stuckOrders)

@@ -31,14 +31,14 @@ const styles = {
     alignItems: "center",
     padding: "0 20px",
     height: "60px",
-    backgroundColor: "#2c3e50", // צבע כהה ומקצועי לשליחים
+    backgroundColor: "#1F2937", // צבע כהה ומקצועי לשליחים
     color: "white",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+    boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)",
   },
   leftSection: { display: "flex", alignItems: "center", gap: "15px" },
   logo: { fontSize: "1.2rem", margin: 0, fontWeight: "bold" },
   badge: { 
-    backgroundColor: "#27ae60", 
+    backgroundColor: "#10B981", 
     padding: "2px 8px", 
     borderRadius: "10px", 
     fontSize: "0.8rem" 
@@ -47,7 +47,7 @@ const styles = {
   welcome: { fontSize: "0.9rem" },
   logoutBtn: {
     padding: "6px 12px",
-    backgroundColor: "#c0392b",
+    backgroundColor: "#DC2A45",
     color: "white",
     border: "none",
     borderRadius: "4px",

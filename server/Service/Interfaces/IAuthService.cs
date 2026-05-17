@@ -1,7 +1,9 @@
-﻿namespace Service.Interfaces
+﻿using Common.Dto;
+
+namespace Service.Interfaces
 {
     public interface IAuthService
     {
-        Task<string> Login(string email, string password);
+        Task<LoginResponseDto> Login(string email, string password, bool rememberMe);
     }
 }

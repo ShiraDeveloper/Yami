@@ -94,9 +94,9 @@ namespace DataContext
                 entity.HasKey(doff => doff.Id);
 
                 // קישור ישיר לטבלת Orders - זה מה שפותר את השגיאה בקונסול
-                entity.HasOne(doff => doff.DeliveryOrder)
+                entity.HasOne(doff => doff.Order)
                       .WithMany()
-                      .HasForeignKey(doff => doff.DeliveryOrderId)
+                      .HasForeignKey(doff => doff.OrderId)
                       .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(doff => doff.Courier)

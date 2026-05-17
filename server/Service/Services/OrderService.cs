@@ -98,18 +98,34 @@ public class OrderService : IOrderService
 
     public async Task<bool> DispatchOrderSequential(int orderId)
     {
+        _logger.LogInformation("DISPATCH STARTED");
+
         using (var scope = _scopeFactory.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<YamiDbContext>();
             var order = await db.Orders.Include(o => o.Store).FirstOrDefaultAsync(o => o.Id == orderId);
 
-            if (order == null || order.Status == OrderStatus.InProgress) return false;
+            if (order == null || order.Status == OrderStatus.InProgress || order.Status == OrderStatus.Canceled) return false;
 
+            // שליפת השליחים הפנויים + טעינת ה-User עבור מיקומי הגיבוי
             var allCouriers = await db.Couriers.Include(c => c.User)
                 .Where(c => c.IsAvailable && c.RemainingBoxVolume >= order.TotalVolume)
                 .ToListAsync();
 
+            _logger.LogInformation($"ALL COURIERS: {allCouriers.Count}");
+
             var rankedCouriers = await BuildRankedCouriers(order.DeliveryLatitude, order.DeliveryLongitude, allCouriers, order);
+
+            _logger.LogInformation($"RANKED COURIERS: {rankedCouriers.Count}");
+
+            // שינוי תוספת: אם אין שליחים רלוונטיים בכלל באלגוריתם, נבטל את ההזמנה מיד
+            if (rankedCouriers.Count == 0)
+            {
+                _logger.LogInformation($"[Dispatch] No ranked couriers found for Order {order.Id}. Cancelling order.");
+                order.Status = OrderStatus.Canceled;
+                await db.SaveChangesAsync();
+                return false;
+            }
 
             int waveSize = 3;
             int waveIndex = 0;
@@ -118,45 +134,78 @@ public class OrderService : IOrderService
             {
                 var currentWave = rankedCouriers.Skip(waveIndex).Take(waveSize).ToList();
 
+                // 1. שליחת ההצעות לכל חברי הגל הנוכחי במקביל
                 foreach (var item in currentWave)
                 {
                     var courier = item.Courier;
 
-                    // תיקון קריטי: קישור ל-OrderID של ההזמנה הנוכחית
                     var newOffer = new DeliveryOffer
                     {
-                        DeliveryOrderId = order.Id, // מוודא שזה מצביע לטבלת Orders
+                        OrderId = order.Id,
                         CourierId = courier.Id,
                         OfferedAt = DateTime.UtcNow,
                         Accepted = null
                     };
                     db.DeliveryOffer.Add(newOffer);
 
-                    if (courier.User != null)
+                    // התיקון המרכזי: שליחה ישירה ל-Group לפי ה-UserId שנמצא תמיד על אובייקט ה-Courier
+                    _logger.LogInformation($"[Dispatch] Sending SignalR to Group user-{courier.UserId} for Order {order.Id}");
+                    await _hubContext.Clients.Group($"user-{courier.UserId}")
+                        .SendAsync("NewOrderAssigned", new
+                        {
+                            orderId = order.Id,
+                            storeName = order.Store?.Name ?? "Yami",
+                            storeAddress = order.Store?.Address ?? "כתובת לא צוינה", // תואם לציפייה ב-React לקבלת כתובת חנות
+                            totalVolume = order.TotalVolume
+                        });
+                }
+
+                // שמירת כל ההצעות של הגל הנוכחי במכה אחת
+                await db.SaveChangesAsync();
+
+                // 2. המתנה של 20 שניות עבור הגל כולו ובדיקה אם מישהו מהם אישר
+                for (int i = 0; i < 10; i++) // 10 סיבובים של 2 שניות = 20 שניות סך הכל
+                {
+                    await Task.Delay(2000);
+
+                    using (var checkScope = _scopeFactory.CreateScope())
                     {
-                        _logger.LogInformation($"[Dispatch] Sending SignalR to Courier User {courier.UserId}");
-                        await _hubContext.Clients.User(courier.UserId.ToString())
-                            .SendAsync("NewOrderAssigned", new
-                            {
-                                orderId = order.Id,
-                                storeName = order.Store?.Name ?? "Yami",
-                                totalVolume = order.TotalVolume
-                            });
+                        var checkDb = checkScope.ServiceProvider.GetRequiredService<YamiDbContext>();
+                        var currentOrderStatus = await checkDb.Orders
+                            .Where(o => o.Id == orderId)
+                            .Select(o => o.Status)
+                            .FirstOrDefaultAsync();
+
+                        if (currentOrderStatus == OrderStatus.InProgress)
+                        {
+                            _logger.LogInformation($"Order {orderId} accepted by a courier. Stopping dispatch.");
+                            return true;
+                        }
                     }
                 }
 
-                await db.SaveChangesAsync();
-
-                var startWait = DateTime.UtcNow;
-                while ((DateTime.UtcNow - startWait).TotalSeconds < 20)
-                {
-                    var checkOrder = await db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == orderId);
-                    if (checkOrder?.Status == OrderStatus.InProgress) return true;
-                    await Task.Delay(2000);
-                }
-
+                // 3. רק לאחר שכל הגל הנוכחי קיבל הזדמנות והזמן עבר - מתקדמים לגל הבא
                 waveIndex += waveSize;
             }
+
+            // ====================================================================
+            // 🛑 מנגנון הביטול האוטומטי: הגענו לכאן? סימן שסיימנו את כל הגלים ואף שליח לא אישר!
+            // ====================================================================
+            _logger.LogInformation($"[Dispatch] All waves completed. No courier accepted Order {order.Id}. Changing status to Canceled.");
+
+            order.Status = OrderStatus.Canceled; // עדכון הסטטוס לביטול
+
+            // נסמן גם את כל ההצעות שלא נענו בגל האחרון כדחויות אוטומטית
+            var remainingOffers = await db.DeliveryOffer
+                .Where(doffer => doffer.OrderId == order.Id && doffer.Accepted == null)
+                .ToListAsync();
+
+            foreach (var offer in remainingOffers)
+            {
+                offer.Accepted = false;
+            }
+
+            await db.SaveChangesAsync(); // שמירה סופית של הביטול בבסיס הנתונים
         }
         return false;
     }
@@ -169,25 +218,52 @@ public class OrderService : IOrderService
 
         foreach (var c in couriers)
         {
+            // 1. סינון שליחים שדחו כבר את ההזמנה הזו
             if (_orderRejections.TryGetValue(incomingOrder.Id, out var rejectedIds) && rejectedIds.Contains(c.Id)) continue;
 
+            // 2. בדיקת עומס הזמנות באמצעות שדה הקיבולת/נפח הפנוי (TotalVolume משמש כאינדיקטור להזמנות פתוחות)
             var activeOrders = allOrders.Where(o => o.CourierId == c.Id && o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Canceled).ToList();
-            if (activeOrders.Count >= MAX_ACTIVE_ORDERS) continue;
 
+            // שימוש ב-TotalVolume של השליח כדי לבדוק אם הוא הגיע למקסימום ההזמנות הפתוחות שלו
+            if (c.TotalDeliveries >= MAX_ACTIVE_ORDERS || activeOrders.Count >= MAX_ACTIVE_ORDERS) continue;
+
+            // 3. שליפת המיקום האחרון מטבלת הטרקינג
             var lastPos = allTracking.Where(x => x.CourierId == c.Id).OrderByDescending(x => x.Timestamp).FirstOrDefault();
-            if (lastPos == null) continue;
 
-            if (!CanCourierHandleRouteWithinTime(activeOrders, incomingOrder, lastPos)) continue;
+            double courierLat;
+            double courierLng;
 
-            var dist = CalculateDistance(lat, lng, lastPos.Latitude, lastPos.Longitude);
+            // --- מנגנון הגיבוי (Fallback) ---
+            if (lastPos != null)
+            {
+                // אם נמצא מיקום לייב בטבלה - נשתמש בו
+                courierLat = lastPos.Latitude;
+                courierLng = lastPos.Longitude;
+            }
+            else
+            {
+                // אם לא נמצא מיקום (null) - לוקחים את מיקום ברירת המחדל מטבלת ה-User ולא מפעילים continue!
+                courierLat = c.User?.Latitude ?? 0;
+                courierLng = c.User?.Longitude ?? 0;
+            }
+
+            // 4. בדיקה האם השליח מסוגל לעמוד בזמני המסלול (נשלח אובייקט מיקום זמני אם lastPos היה null)
+            var trackingContext = lastPos ?? new CourierTracking { Latitude = courierLat, Longitude = courierLng };
+            if (!CanCourierHandleRouteWithinTime(activeOrders, incomingOrder, trackingContext)) continue;
+
+            // 5. חישוב המרחק והוספה לרשימה
+            var dist = CalculateDistance(lat, lng, courierLat, courierLng);
             result.Add((c, dist));
         }
+
+        // החזרה של השליחים כשהם ממוינים מהקרוב ביותר לרחוק ביותר
         return result.OrderBy(x => x.Distance).ToList();
     }
 
     private bool CanCourierHandleRouteWithinTime(List<Order> activeOrders, Order newOrder, CourierTracking lastPos)
     {
-        double currentLat = lastPos.Latitude; double currentLng = lastPos.Longitude;
+        double currentLat = lastPos.Latitude;
+        double currentLng = lastPos.Longitude;
         double accumulatedTime = 0;
         var remainingStops = activeOrders.Concat(new[] { newOrder }).ToList();
 
@@ -197,7 +273,8 @@ public class OrderService : IOrderService
             var dist = CalculateDistance(currentLat, currentLng, next.DeliveryLatitude, next.DeliveryLongitude);
             accumulatedTime += ((dist / AVERAGE_SPEED_KMPH) * 60) + 5;
             if ((DateTime.UtcNow - next.CreatedAt).TotalMinutes + accumulatedTime > MAX_DELIVERY_MINUTES) return false;
-            currentLat = next.DeliveryLatitude; currentLng = next.DeliveryLongitude;
+            currentLat = next.DeliveryLatitude;
+            currentLng = next.DeliveryLongitude;
             remainingStops.Remove(next);
         }
         return true;
@@ -219,6 +296,11 @@ public class OrderService : IOrderService
         order.CourierId = courier.Id;
         order.Status = OrderStatus.InProgress;
         await _orderRepository.Update(order);
+        await _hubContext.Clients.All
+    .SendAsync("OrderTaken", new
+    {
+        orderId = orderId
+    });
         return order;
     }
 

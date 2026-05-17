@@ -14,10 +14,12 @@ export default function Cart() {
     setCart(saved);
   };
 
-  const saveCart = (updated) => {
-    setCart(updated);
-    localStorage.setItem("cart", JSON.stringify(updated));
-  };
+const saveCart = (updated) => {
+  setCart(updated);
+  localStorage.setItem("cart", JSON.stringify(updated));
+
+  window.dispatchEvent(new Event("cartUpdated"));
+};
 
   // ✅ חסימה של כמה חנויות
   const addToCartSafe = (product) => {
@@ -127,20 +129,20 @@ export default function Cart() {
 const styles = {
   container: {
     padding: "30px",
-    backgroundColor: "#eef1f7",
+    backgroundColor: "#F8FAFC",
     minHeight: "100vh",
-    color: "#1f2937", // טקסט כהה כללי
+    color: "#1F2937", // טקסט כהה כללי
   },
 
   title: {
     textAlign: "center",
     marginBottom: "20px",
-    color: "#111827",
+    color: "#1F2937",
   },
 
   empty: {
     textAlign: "center",
-    color: "#4b5563",
+    color: "#6B7280",
     fontSize: "16px",
   },
 
@@ -152,16 +154,16 @@ const styles = {
     padding: "15px",
     marginBottom: "10px",
     borderRadius: "10px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)",
   },
 
   name: {
     margin: 0,
-    color: "#111827",
+    color: "#1F2937",
   },
 
   text: {
-    color: "#374151",
+    color: "#1F2937",
   },
 
   qty: {
@@ -172,21 +174,21 @@ const styles = {
   },
 
   qtyNumber: {
-    color: "#111827",
+    color: "#1F2937",
     fontWeight: "bold",
   },
 
   btn: {
     padding: "4px 10px",
-    backgroundColor: "#d1d5db",
+    backgroundColor: "#E5E9F2",
     border: "none",
     borderRadius: "5px",
     cursor: "pointer",
-    color: "#111827",
+    color: "#1F2937",
   },
 
   remove: {
-    backgroundColor: "#ef4444",
+    backgroundColor: "#EF5A6F",
     color: "#ffffff",
     border: "none",
     padding: "8px 12px",
@@ -200,13 +202,13 @@ const styles = {
   },
 
   total: {
-    color: "#111827",
+    color: "#1F2937",
   },
 
   checkout: {
     marginTop: "10px",
     padding: "10px 20px",
-    backgroundColor: "#2563eb",
+    backgroundColor: "#7B8FF5",
     color: "#ffffff",
     border: "none",
     borderRadius: "8px",

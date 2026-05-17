@@ -110,7 +110,7 @@ const styles = {
     background: "white",
     padding: "12px 16px",
     borderRadius: "10px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+    boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)",
     fontSize: "14px",
     zIndex: 9999,
   },

@@ -13,6 +13,8 @@ public class Courier
     public double RemainingBoxVolume { get; set; }
 
     public int TotalDeliveries { get; set; }
+    public int TotalAmountDeliveries { get; set; }
+    
 
     public ICollection<Order>? Orders { get; set; }
     public ICollection<Delivery>? Deliveries { get; set; }

@@ -22,16 +22,18 @@ namespace Yami.Controllers
         {
             try
             {
-                // העברת פרמטר rememberMe לשירות הליבה
-                var token = await _authService.Login(request.Email, request.Password, request.RememberMe);
+                var result = await _authService.Login(
+                    request.Email,
+                    request.Password,
+                    request.RememberMe
+                );
 
-                // אם השרות החזיר null, סימן שהפרטים שגויים
-                if (token == null)
+                if (result == null)
                 {
                     return Unauthorized(new { error = "Invalid email or password" });
                 }
 
-                return Ok(new { token });
+                return Ok(result);
             }
             catch (Exception ex)
             {

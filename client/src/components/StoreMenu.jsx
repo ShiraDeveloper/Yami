@@ -57,6 +57,7 @@ const addToCart = (item) => {
   }
 
   localStorage.setItem("cart", JSON.stringify(cart));
+  window.dispatchEvent(new Event("cartUpdated"));
 };
 
   if (loading) return <p>טוען תפריט...</p>;
@@ -101,9 +102,9 @@ const styles = {
   container: {
     minHeight: "100vh",
     padding: "40px",
-    backgroundColor: "#f5f6fa",
-    color: "#1e1e1e", // צבע בסיס לכל הטקסט
-    fontFamily: "Arial, sans-serif",
+    backgroundColor: "#F8FAFC",
+    color: "#1F2937", // צבע בסיס לכל הטקסט
+    fontFamily: "Inter, system-ui, -apple-system, Segoe UI, sans-serif",
   },
 
   title: {
@@ -111,7 +112,7 @@ const styles = {
     marginBottom: "30px",
     fontSize: "28px",
     fontWeight: "bold",
-    color: "#2c3e50",
+    color: "#1F2937",
   },
 
   grid: {
@@ -124,7 +125,7 @@ const styles = {
     background: "#ffffff",
     padding: "20px",
     borderRadius: "14px",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+    boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
@@ -135,24 +136,24 @@ const styles = {
     marginBottom: "6px",
     fontSize: "18px",
     fontWeight: "600",
-    color: "#1e1e1e",
+    color: "#1F2937",
   },
 
   category: {
     fontSize: "13px",
-    color: "#7f8c8d",
+    color: "#6B7280",
     marginBottom: "10px",
   },
 
   price: {
     fontWeight: "bold",
     fontSize: "18px",
-    color: "#27ae60",
+    color: "#10B981",
     marginBottom: "15px",
   },
 
   button: {
-    backgroundColor: "#4e73df",
+    backgroundColor: "#7B8FF5",
     color: "#ffffff",
     border: "none",
     padding: "10px",
@@ -164,7 +165,7 @@ const styles = {
 
   empty: {
     textAlign: "center",
-    color: "#7f8c8d",
+    color: "#6B7280",
     fontSize: "16px",
   },
 };

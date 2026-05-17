@@ -164,8 +164,10 @@ namespace Yami
             app.UseAuthorization();
 
             // ===== 8. Endpoints =====
+
+            // Replace the conflicting line with the fully qualified alias
             app.MapHub<TrackingHub>("/trackingHub");
-            app.MapHub<TrackingHub>("/orderHub"); // נשאר כאן למקרה שקומפוננטות אחרות תלויות בו, אך כעת הוא מאובטח ומחלץ טוקן
+            //app.MapHub<TrackingHub>("/orderHub"); // נשאר כאן למקרה שקומפוננטות אחרות תלויות בו, אך כעת הוא מאובטח ומחלץ טוקן
             app.MapControllers();
 
             app.Run();

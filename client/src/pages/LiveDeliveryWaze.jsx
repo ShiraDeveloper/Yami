@@ -98,5 +98,5 @@ export default function LiveCourierMap({ orderId }) {
 
 const panelStyle = {
   position: "absolute", top: 20, right: 20, background: "white",
-  padding: "12px 15px", borderRadius: "10px", boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
+  padding: "12px 15px", borderRadius: "10px", boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)"
 };

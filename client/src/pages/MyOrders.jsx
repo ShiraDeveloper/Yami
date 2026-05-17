@@ -5,57 +5,47 @@ export default function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+useEffect(() => {
+  fetchOrders(true);
 
-  const fetchOrders = async () => {
+  const interval = setInterval(() => {
+    fetchOrders(false);
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, []);
+
+  const fetchOrders = async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
       setError("");
-
       const token = localStorage.getItem("token");
       if (!token) {
         setError("Please login to see your orders");
         setLoading(false);
         return;
       }
-
       const apiUrl = import.meta.env.VITE_API_URL || "https://localhost:7234";
-      
       const res = await fetch(`${apiUrl}/api/orders/my-orders`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
       });
-
-      if (!res.ok) {
-        throw new Error(`Server error: ${res.status}`);
-      }
-
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
-      console.log("Data from server:", data);
 
-      // לוגיקה לטיפול בכל סוגי התגובות: מערך, אובייקט בודד, או עטיפת $values
-      let normalizedData = [];
-      if (Array.isArray(data)) {
-        normalizedData = data;
-      } else if (data && typeof data === 'object') {
-        // אם זה אובייקט עם שדה של ערכים (נפוץ ב-EF Core)
-        if (data.$values && Array.isArray(data.$values)) {
-          normalizedData = data.$values;
-        } else if (data.id || data.Id) {
-          // אם זה אובייקט בודד של הזמנה אחת
-          normalizedData = [data];
-        }
+      let normalized = [];
+      if (Array.isArray(data)) normalized = data;
+      else if (data && typeof data === "object") {
+        if (data.$values && Array.isArray(data.$values)) normalized = data.$values;
+        else if (data.id || data.Id) normalized = [data];
       }
-      
-      setOrders(normalizedData);
-
+      setOrders(normalized);
     } catch (err) {
       console.error("Fetch error:", err);
       setError("Failed to load orders. Please try again.");
@@ -64,85 +54,113 @@ export default function MyOrders() {
     }
   };
 
-  const getStatusText = (status) => {
-    // מפה לפי ה-Enum ב-C# (0=New, 1=Approved, 2=InProgress, 3=Delivered, 4=Canceled)
-    const statusMap = {
-      0: "🆕 New",
-      1: "👨‍🍳 Preparing",
-      2: "🚚 On the way",
-      3: "✅ Delivered",
-      4: "❌ Canceled",
-      "New": "🆕 New",
-      "Approved": "👨‍🍳 Preparing",
-      "InProgress": "🚚 On the way",
-      "Delivered": "✅ Delivered",
-      "Canceled": "❌ Canceled"
-    };
-    return statusMap[status] || "Unknown";
+  const STATUS = {
+    0: { label: "New", color: "#7B8FF5", bg: "#EEF2FF", icon: "🆕" },
+    1: { label: "Preparing", color: "#D97706", bg: "#FEF3C7", icon: "👨‍🍳" },
+    2: { label: "On the way", color: "#7B8FF5", bg: "#EEF2FF", icon: "🚚" },
+    3: { label: "Delivered", color: "#10B981", bg: "#D1FAE5", icon: "✅" },
+    4: { label: "Canceled", color: "#DC2A45", bg: "#FEE2E2", icon: "❌" },
+  };
+  const getStatus = (s) => {
+    if (typeof s === "string") {
+      const map = { New: 0, Approved: 1, InProgress: 2, Delivered: 3, Canceled: 4 };
+      s = map[s] ?? 0;
+    }
+    return STATUS[s] || STATUS[0];
   };
 
-  const getStatusStyle = (status) => {
-    const isFinal = [3, 4, "Delivered", "Canceled"].includes(status);
-    const isSuccess = status === 3 || status === "Delivered";
-    return {
-      fontWeight: "bold",
-      color: isSuccess ? "#16a34a" : isFinal ? "#dc2626" : "#2563eb"
-    };
-  };
-
-  if (loading) return <div style={styles.center}><h2>Loading orders...</h2></div>;
+  if (loading)
+    return (
+      <div style={styles.container}>
+        <div style={styles.center}>
+          <div style={styles.spinner} />
+          <p style={styles.muted}>Loading orders...</p>
+        </div>
+      </div>
+    );
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>My Orders</h1>
+      <div style={styles.header}>
+        <h1 style={styles.title}>My Orders</h1>
+        <p style={styles.subtitle}>
+          {orders.length} {orders.length === 1 ? "order" : "orders"}
+        </p>
+      </div>
 
       {error && (
-        <div style={styles.center}>
-          <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>
-          <button onClick={fetchOrders} style={styles.button}>Retry</button>
+        <div style={styles.errorBox}>
+          <p style={{ margin: 0, color: "#DC2A45" }}>{error}</p>
+          <button onClick={fetchOrders} style={styles.btnPrimary}>
+            Retry
+          </button>
         </div>
       )}
 
       {!error && orders.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#666" }}>No orders yet</p>
+        <div style={styles.empty}>
+          <div style={styles.emptyIcon}>📦</div>
+          <h3 style={{ margin: "12px 0 4px", color: "#1F2937" }}>No orders yet</h3>
+          <p style={styles.muted}>Your past orders will appear here.</p>
+        </div>
       ) : (
         <div style={styles.list}>
           {orders.map((order) => {
             const orderId = order.id || order.Id;
-            const status = order.status !== undefined ? order.status : order.Status;
+            const statusKey = order.status !== undefined ? order.status : order.Status;
+            const st = getStatus(statusKey);
             const storeName = order.store?.name || order.Store?.Name || "Unknown Store";
-            const date = new Date(order.createdAt || order.CreatedAt).toLocaleString();
+            const date = new Date(order.createdAt || order.CreatedAt);
+            const total = order.totalPrice || order.TotalPrice || order.total || 0;
+            const isOpen = ![3, 4, "Delivered", "Canceled"].includes(statusKey);
 
             return (
               <div key={orderId} style={styles.card}>
-                <div style={styles.info}>
-                  <h3 style={{ margin: "0 0 10px 0" }}>Order #{orderId}</h3>
-                  <p style={styles.text}>🏪 <strong>Store:</strong> {storeName}</p>
-                  <p style={styles.text}>
-                    📦 <strong>Status:</strong>{" "}
-                    <span style={getStatusStyle(status)}>
-                      {getStatusText(status)}
+                <div style={styles.cardLeft}>
+                  <div style={styles.storeAvatar}>
+                    {storeName.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={styles.info}>
+                    <div style={styles.topLine}>
+                      <h3 style={styles.storeName}>{storeName}</h3>
+                      <span style={styles.orderId}>#{orderId}</span>
+                    </div>
+                    <p style={styles.date}>
+                      {date.toLocaleDateString()} · {date.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <span
+                      style={{
+                        ...styles.badge,
+                        color: st.color,
+                        background: st.bg,
+                      }}
+                    >
+                      {st.icon} {st.label}
                     </span>
-                  </p>
-                  <p style={{ ...styles.text, fontSize: "0.85rem", color: "#666" }}>🕒 {date}</p>
+                  </div>
                 </div>
 
-                <div style={styles.actions}>
-                  <button
-                    style={styles.button}
-                    onClick={() => navigate(`/order/${orderId}`)}
-                  >
-                    Details
-                  </button>
-                  {/* כפתור מעקב יופיע רק אם ההזמנה לא סופקה או בוטלה */}
-                  {![3, 4, "Delivered", "Canceled"].includes(status) && (
+                <div style={styles.cardRight}>
+                  {total > 0 && <p style={styles.price}>₪{Number(total).toFixed(2)}</p>}
+                  <div style={styles.actions}>
                     <button
-                      style={styles.trackBtn}
-                      onClick={() => navigate(`/track/${orderId}`)}
+                      style={styles.btnGhost}
+                      onClick={() => navigate(`/order/${orderId}`)}
                     >
-                      Track
+                      Details
                     </button>
-                  )}
+                    {isOpen && (
+                      <button
+                        style={styles.btnPrimary}
+                        onClick={() => navigate(`/track/${orderId}`)}
+                      >
+                        Track
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -154,40 +172,136 @@ export default function MyOrders() {
 }
 
 const styles = {
-  container: { padding: "40px 20px", backgroundColor: "#f5f6fa", minHeight: "100vh", direction: "ltr" },
-  title: { textAlign: "center", marginBottom: "40px", color: "#2d3436" },
-  list: { display: "flex", flexDirection: "column", gap: "20px", maxWidth: "800px", margin: "0 auto" },
-  card: { 
-    display: "flex", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
-    background: "white", 
-    padding: "25px", 
-    borderRadius: "15px", 
-    boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-    border: "1px solid #eee"
+  container: {
+    padding: "40px 20px",
+    backgroundColor: "#F8FAFC",
+    minHeight: "100vh",
+    fontFamily: "Inter, system-ui, -apple-system, Segoe UI, sans-serif",
+    color: "#1F2937",
   },
-  info: { flex: 1 },
-  text: { margin: "5px 0", color: "#2d3436" },
-  actions: { display: "flex", flexWrap: "wrap", gap: "10px", marginLeft: "20px" },
-  button: { 
-    padding: "10px 20px", 
-    backgroundColor: "#4e73df", 
-    color: "white", 
-    border: "none", 
-    borderRadius: "8px", 
+  header: { maxWidth: "820px", margin: "0 auto 24px" },
+  title: { margin: 0, fontSize: "28px", fontWeight: 700, color: "#1F2937" },
+  subtitle: { margin: "4px 0 0", color: "#6B7280", fontSize: "14px" },
+  list: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "14px",
+    maxWidth: "820px",
+    margin: "0 auto",
+  },
+  card: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "16px",
+    background: "white",
+    padding: "18px 20px",
+    borderRadius: "14px",
+    boxShadow: "0 4px 16px rgba(31, 41, 55, 0.06)",
+    border: "1px solid #F1F5F9",
+    flexWrap: "wrap",
+  },
+  cardLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    flex: 1,
+    minWidth: "240px",
+  },
+  storeAvatar: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "12px",
+    background: "linear-gradient(135deg, #7B8FF5, #A5B4FC)",
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: 700,
+    fontSize: "18px",
+    flexShrink: 0,
+  },
+  info: { flex: 1, minWidth: 0 },
+  topLine: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: "10px",
+    flexWrap: "wrap",
+  },
+  storeName: {
+    margin: 0,
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#1F2937",
+  },
+  orderId: { fontSize: "12px", color: "#9CA3AF", fontWeight: 500 },
+  date: { margin: "4px 0 8px", fontSize: "13px", color: "#6B7280" },
+  badge: {
+    display: "inline-block",
+    padding: "4px 10px",
+    borderRadius: "999px",
+    fontSize: "12px",
+    fontWeight: 600,
+  },
+  cardRight: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    gap: "10px",
+  },
+  price: { margin: 0, fontSize: "18px", fontWeight: 700, color: "#10B981" },
+  actions: { display: "flex", gap: "8px" },
+  btnPrimary: {
+    padding: "8px 16px",
+    backgroundColor: "#7B8FF5",
+    color: "white",
+    border: "none",
+    borderRadius: "10px",
     cursor: "pointer",
-    fontWeight: "600",
-    transition: "background 0.2s"
+    fontWeight: 600,
+    fontSize: "13px",
   },
-  trackBtn: { 
-    padding: "10px 20px", 
-    backgroundColor: "#16a34a", 
-    color: "white", 
-    border: "none", 
-    borderRadius: "8px", 
+  btnGhost: {
+    padding: "8px 16px",
+    backgroundColor: "white",
+    color: "#7B8FF5",
+    border: "1px solid #E5E7EB",
+    borderRadius: "10px",
     cursor: "pointer",
-    fontWeight: "600"
+    fontWeight: 600,
+    fontSize: "13px",
   },
-  center: { display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", flexDirection: "column" },
+  empty: {
+    maxWidth: "520px",
+    margin: "60px auto 0",
+    textAlign: "center",
+    background: "white",
+    padding: "40px 20px",
+    borderRadius: "16px",
+    border: "1px solid #F1F5F9",
+  },
+  emptyIcon: { fontSize: "48px" },
+  muted: { color: "#6B7280", margin: 0 },
+  errorBox: {
+    maxWidth: "820px",
+    margin: "0 auto 20px",
+    background: "#FEF2F2",
+    border: "1px solid #FECACA",
+    padding: "14px 18px",
+    borderRadius: "12px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "12px",
+  },
+  center: { textAlign: "center", marginTop: "80px" },
+  spinner: {
+    width: "32px",
+    height: "32px",
+    border: "3px solid #E5E7EB",
+    borderTopColor: "#7B8FF5",
+    borderRadius: "50%",
+    margin: "0 auto 12px",
+    animation: "spin 0.8s linear infinite",
+  },
 };

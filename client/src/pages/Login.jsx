@@ -11,7 +11,6 @@ function parseJwt(token) {
         .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-
     return JSON.parse(jsonPayload);
   } catch {
     return null;
@@ -28,7 +27,6 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     setError("");
     setLoading(true);
 
@@ -38,7 +36,8 @@ export default function Login() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          // שולחים true קבוע לשרת, כדי שהשרת תמיד ינפיק טוקן ארוך טווח
+          body: JSON.stringify({ email, password, rememberMe: true }), 
         }
       );
 
@@ -49,23 +48,22 @@ export default function Login() {
         return;
       }
 
-      // שמירת טוקן
-      localStorage.setItem("token", data.token);
+      // מנקים שאריות ישנות משני אזורי האחסון
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
 
-      // פענוח JWT
+      // שמירה תמידית ב-localStorage כדי שהמשתמש יישאר מחובר גם אחרי סגירת הדפדפן
+      localStorage.setItem("token", data.token); 
+      localStorage.setItem("userId", data.userId);
+
+      // פענוח JWT וניווט
       const decoded = parseJwt(data.token);
+      const role = decoded?.role || decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
-      console.log("decoded token:", decoded);
-
-      const role =
-        decoded?.role ||
-        decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-
-      // ניווט לפי role
       if (role === "Customer") navigate("/stores");
       else if (role === "Admin") navigate("/admin");
       else if (role === "Delivery") navigate("/courier");
-      else navigate("/stores"); // fallback
+      else navigate("/stores");
 
     } catch (err) {
       setError("Server error");
@@ -83,21 +81,31 @@ export default function Login() {
 
         <input
           type="email"
+          id="email"
+          name="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="username"
           style={styles.input}
+          required
         />
 
         <input
           type="password"
+          id="password"
+          name="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
           style={styles.input}
+          required
         />
 
-        <button style={styles.button} disabled={loading}>
+        {/* ה-Checkbox הוסר לחלוטין מכאן בהתאם לבקשתך */}
+
+        <button style={styles.button} disabled={loading} type="submit">
           {loading ? "Loading..." : "Login"}
         </button>
 
@@ -132,11 +140,11 @@ const styles = {
     cursor: "pointer",
   },
   error: {
-    color: "red",
+    color: "#EF5A6F",
   },
   link: {
     cursor: "pointer",
-    color: "blue",
+    color: "#7B8FF5",
     textDecoration: "underline",
     fontSize: "14px",
   },

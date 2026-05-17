@@ -54,8 +54,8 @@ namespace Repository.Repositories
             existingDeliveryOffer.OfferedAt= entity.OfferedAt;
             existingDeliveryOffer.Courier= entity.Courier;
             existingDeliveryOffer.CourierId = entity.CourierId;
-            existingDeliveryOffer.DeliveryOrder = entity.DeliveryOrder;
-            existingDeliveryOffer.DeliveryOrderId = entity.DeliveryOrderId;
+            existingDeliveryOffer.Order = entity.Order;
+            existingDeliveryOffer.OrderId = entity.OrderId;
             await ctx.Save();
             return existingDeliveryOffer;
         }
