@@ -118,8 +118,15 @@ export default function CourierDashboard() {
         }
         return prev;
     });
+    });
+    // 📌 מאזין לאירוע שהוספנו בשרת - מעלים את ההצעה מהמסך בשקט
+connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
+    console.log(`🤫 Order ${cancelledOrderId} was cancelled by server.`);
+    setNewOffer(prev => {
+        if (prev?.orderId === cancelledOrderId) return null;
+        return prev;
+    });
 });
-
         connection.onclose(() => {
             console.warn("🔌 SignalR disconnected");
         });

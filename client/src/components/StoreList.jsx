@@ -35,82 +35,6 @@ export default function StoreList() {
     if (location) fetchStores();
   }, [location]);
 
-  // פונקציית עזר להמרת שעה בודדת (HH:MM) ב-3 שעות קדימה במידת הצורך
-  const addThreeHours = (timeStr) => {
-    if (!timeStr) return "00:00";
-    try {
-      const trimmed = timeStr.trim();
-      // אם מדובר בתאריך מלא של ISO String (מכיל 'T'), נחלץ ממנו את השעה המקומית ישירות
-      if (trimmed.includes("T") || trimmed.includes("-") && trimmed.length > 10) {
-        const dateObj = new Date(trimmed);
-        return dateObj.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", hour12: false });
-      }
-
-      const [hours, minutes] = trimmed.split(":").map(Number);
-      if (isNaN(hours) || isNaN(minutes)) return trimmed;
-      
-      const newHours = (hours + 3) % 24;
-      return `${String(newHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-    } catch (e) {
-      return timeStr;
-    }
-  };
-
-  // פונקציה חכמה שמציגה את טווח השעות המקומי המתוקן על המסך
-  const getLocalHoursString = (store) => {
-    const hoursStr = store.openingHours || store.openingHour || store.openHours;
-    if (!hoursStr) return "N/A";
-
-    try {
-      const trimmed = hoursStr.trim();
-      
-      // תמיכה במקרה שהשרת מחזיר תאריך ISO גולמי (למשל תאריך פתיחה/עדכון) במקום טווח שעות
-      if (trimmed.includes("T") || (trimmed.includes("-") && trimmed.split("-").length !== 2)) {
-        const dateObj = new Date(trimmed);
-        return dateObj.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", hour12: false });
-      }
-
-      const parts = trimmed.split("-");
-      if (parts.length !== 2) return trimmed;
-
-      const localStart = addThreeHours(parts[0]);
-      const localEnd = addThreeHours(parts[1]);
-
-      return `${localStart} - ${localEnd}`;
-    } catch (e) {
-      return hoursStr;
-    }
-  };
-
-  // בדיקה האם החנות פתוחה כעת לפי השעות המעודכנות
-  const isStoreOpen = useCallback((store) => {
-    const hoursStr = store.openingHours || store.openingHour || store.openHours;
-    if (!hoursStr) return true; 
-
-    try {
-      const trimmed = hoursStr.trim();
-      const parts = trimmed.split("-");
-      if (parts.length !== 2) return true;
-
-      const [startH, startM] = addThreeHours(parts[0]).split(":").map(Number);
-      const [endH, endM] = addThreeHours(parts[1]).split(":").map(Number);
-
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-      const startMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-
-      if (startMinutes <= endMinutes) {
-        return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-      } else {
-        return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
-      }
-    } catch (e) {
-      return true; 
-    }
-  }, []);
-
   // הפעלת פילטרים משולבים
   const applyFiltersAndSearch = useCallback(() => {
     let result = [...stores];
@@ -125,12 +49,13 @@ export default function StoreList() {
       result = result.filter((s) => s.kosherTags && s.kosherTags.trim() !== "");
     }
 
+    // 🌟 פילטר חכם: משתמש ישירות ב-isOpen שהגיע מהשרת!
     if (filterOpenNow) {
-      result = result.filter((s) => isStoreOpen(s));
+      result = result.filter((s) => s.isOpen === true || s.IsOpen === true);
     }
 
     setFilteredStores(result);
-  }, [search, filterKosher, filterOpenNow, stores, isStoreOpen]);
+  }, [search, filterKosher, filterOpenNow, stores]);
 
   useEffect(() => {
     applyFiltersAndSearch();
@@ -147,6 +72,7 @@ export default function StoreList() {
         return;
       }
 
+      // קריאה ל-API של רשימת החנויות
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/Stores?userLat=${location.lat}&userLng=${location.lng}`,
         {
@@ -158,6 +84,8 @@ export default function StoreList() {
 
       const data = await res.json();
       const storesData = Array.isArray(data) ? data : data.stores || data.data || [];
+
+      console.log("ALL STORES FROM SERVER:", storesData); // הדפסת בדיקה לקונסול
 
       setStores(storesData);
       setFilteredStores(storesData);
@@ -214,8 +142,11 @@ export default function StoreList() {
       {/* רשימת החנויות */}
       <div style={styles.list}>
         {filteredStores.map((store) => {
-          const open = isStoreOpen(store);
-          const displayHours = getLocalHoursString(store); 
+          // 🌟 שליפת המצב המדויק מהשרת (תומך באות קטנה או גדולה)
+          const open = store.isOpen === true || store.IsOpen === true;
+          
+          // 🌟 לוקח את מחרוזת השעות המקורית מה-DB בלי לעשות מניפולציות שמחרבשות את השעה
+          const displayHours = store.openHours || store.openingHours || "N/A"; 
           
           return (
             <div 
@@ -248,6 +179,7 @@ export default function StoreList() {
                   {store.kosherTags && (
                     <span style={styles.kosherBadge}>• {store.kosherTags}</span>
                   )}
+                  {/* 🌟 מציג Open או Closed בצורה מושלמת לפי קביעת השרת */}
                   <span style={open ? styles.openText : styles.closedText}>
                     • {open ? "Open" : "Closed"} 
                     <span style={styles.hoursText}> ({displayHours})</span>

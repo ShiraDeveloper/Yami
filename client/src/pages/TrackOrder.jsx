@@ -17,43 +17,14 @@ const customerLocation = {
   lng: 34.7818,
 };
 
-// 🎨 ערכת עיצוב מינימליסטית - מסירה קניונים, מסעדות, אטרקציות ומשאירה רק כבישים וערים
 const cleanMapStyle = [
-  {
-    featureType: "poi",
-    elementType: "all",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "transit",
-    elementType: "all",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry",
-    stylers: [{ color: "#ffffff" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#6B7280" }],
-  },
-  {
-    featureType: "landscape",
-    elementType: "geometry",
-    stylers: [{ color: "#F1F5F9" }],
-  },
-  {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [{ color: "#E2E8F0" }],
-  },
-  {
-    featureType: "administrative.locality",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#1F2937" }, { fontWeight: "bold" }],
-  }
+  { featureType: "poi", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", elementType: "all", stylers: [{ visibility: "off" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#6B7280" }] },
+  { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#F1F5F9" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#E2E8F0" }] },
+  { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#1F2937" }, { fontWeight: "bold" }] }
 ];
 
 export default function LiveCourierMap({ orderId }) {
@@ -67,6 +38,8 @@ export default function LiveCourierMap({ orderId }) {
 
   const connectionRef = useRef(null);
   const animationRef = useRef(null);
+  // רפרנס שישמור תמיד את המיקום הנוכחי העדכני ביותר של השליח לטובת האנימציה הבאה
+  const courierRef = useRef(null); 
 
   // 🔌 SignalR Hub connection
   useEffect(() => {
@@ -82,12 +55,15 @@ export default function LiveCourierMap({ orderId }) {
     connection.on("ReceiveCourierLocation", (courierId, lat, lng) => {
       const newPos = { lat, lng };
       
-      // עדכון המיקום החלק והרצת חישוב המסלול מול ה-API של גוגל
-      setCourier((currentCourier) => {
-        smoothMove(currentCourier, newPos);
-        return currentCourier ? currentCourier : newPos;
-      });
+      // 🌟 התיקון כאן: אם זה המיקום הראשון - נשים אותו ישר, אם לא - נפעיל אנימציה חלקה
+      if (!courierRef.current) {
+        setCourier(newPos);
+        courierRef.current = newPos;
+      } else {
+        smoothMove(courierRef.current, newPos);
+      }
       
+      // הרצת חישוב המסלול מול גוגל
       getRoute(newPos);
     });
 
@@ -101,10 +77,8 @@ export default function LiveCourierMap({ orderId }) {
     };
   }, [orderId]);
 
-  // 🎯 חישוב צעדי האנימציה לתנועה חלקה (מניעת קפיצות של המרקר)
+  // 🎯 חישוב צעדי האנימציה לתנועה חלקה
   const smoothMove = (startPos, endPos) => {
-    if (!startPos) return;
-
     let step = 0;
     const steps = 25;
     const deltaLat = (endPos.lat - startPos.lat) / steps;
@@ -115,13 +89,13 @@ export default function LiveCourierMap({ orderId }) {
     animationRef.current = setInterval(() => {
       step++;
       
-      setCourier((prev) => {
-        if (!prev) return endPos;
-        return {
-          lat: prev.lat + deltaLat,
-          lng: prev.lng + deltaLng,
-        };
-      });
+      const currentStepPos = {
+        lat: startPos.lat + deltaLat * step,
+        lng: startPos.lng + deltaLng * step,
+      };
+
+      setCourier(currentStepPos);
+      courierRef.current = currentStepPos; // מעדכנים את הרפרנס כדי שהצעד הבא יידע מאיפה להמשיך
 
       if (step >= steps) {
         clearInterval(animationRef.current);
@@ -131,7 +105,7 @@ export default function LiveCourierMap({ orderId }) {
 
   // 🛣️ חישוב מסלול נסיעה וזמן הגעה (ETA)
   const getRoute = (courierPos) => {
-    if (!window.google) return;
+    if (!window.google || !courierPos) return;
     const directionsService = new window.google.maps.DirectionsService();
 
     directionsService.route(
@@ -145,6 +119,8 @@ export default function LiveCourierMap({ orderId }) {
           setDirections(result);
           const leg = result.routes[0].legs[0];
           setEta(leg.duration.text); 
+        } else {
+          console.error("Directions Request Failed: ", status);
         }
       }
     );
@@ -160,47 +136,47 @@ export default function LiveCourierMap({ orderId }) {
         center={courier || customerLocation}
         zoom={14}
         options={{
-          styles: cleanMapStyle, // 📌 החלת העיצוב הנקי ללא קניונים ומסעדות
-          disableDefaultUI: true, // הסרת כפתורי ממשק מיותרים
+          styles: cleanMapStyle,
+          disableDefaultUI: true,
           zoomControl: true,
         }}
       >
-        {/* 📍 מרקר יעד הלקוח - קלאסי ונקי */}
+        {/* 📍 מרקר יעד הלקוח - עם לוגו YAMI קטן ולבן */}
         <Marker
           position={customerLocation}
           options={{
-            label: { text: "Y", color: "#ffffff", fontWeight: "bold" } // לוגו קטן קלאסי במקום סיכה גנרית
+            label: { text: "Y", color: "#ffffff", fontWeight: "bold" }
           }}
         />
 
-        {/* 🚚 מרקר השליח בזמן אמת */}
+        {/* 🏍️ מרקר השליח בזמן אמת */}
         {courier && (
           <Marker
             position={courier}
             icon={{
-              url: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png", // האייקון שבחרת
-              scaledSize: new window.google.maps.Size(35, 35),
+              url: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
+              scaledSize: new window.google.maps.Size(40, 40),
             }}
           />
         )}
 
-        {/* 🛣️ ציור קו המסלול בעיצוב מותאם אישית שלא יעמיס על המפה */}
+        {/* 🛣️ ציור קו המסלול המותאם אישית בין השליח ללקוח */}
         {directions && (
           <DirectionsRenderer 
             directions={directions} 
             options={{
-              suppressMarkers: true, // מונע מגוגל להוסיף את סיכות ה-A ו-B המעצבות שלהם מעל הסיכות שלך
+              suppressMarkers: true, // מונע את סיכות ה-A ו-B המקוריות של גוגל
               polylineOptions: {
-                strokeColor: "#1F2937", // קו כהה, סולידי ונקי (במקום הכחול הזרחני)
-                strokeOpacity: 0.7,
-                strokeWeight: 4
+                strokeColor: "#1F2937", // קו כהה, סולידי ונקי (מתאים ללוגו של YAMI!)
+                strokeOpacity: 0.8,
+                strokeWeight: 5
               }
             }}
           />
         )}
       </GoogleMap>
 
-      {/* 📊 פאנל ETA בעיצוב מונוכרומטי עדין */}
+      {/* 📊 פאנל ETA */}
       {eta && (
         <div style={styles.panelStyle}>
           <span style={styles.etaLabel}>Estimated Arrival</span>
@@ -211,11 +187,10 @@ export default function LiveCourierMap({ orderId }) {
   );
 }
 
-// 🎨 מערך עיצוב סולידי ומשולב לקומפוננטה
 const styles = {
   panelStyle: {
     position: "absolute",
-    top: "80px", // ממוקם בבטחה מתחת ל-Navbar הקבוע שלך (60px)
+    top: "80px",
     right: "20px",
     backgroundColor: "#ffffff",
     padding: "12px 18px",
