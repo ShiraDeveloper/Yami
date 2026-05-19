@@ -14,11 +14,13 @@ namespace Yami.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly ILogger<OrdersController> _logger;
+        private readonly IStoreService _storeService;
 
-        public OrdersController(IOrderService orderService, ILogger<OrdersController> logger)
+        public OrdersController(IOrderService orderService, ILogger<OrdersController> logger, IStoreService storeService)
         {
             _orderService = orderService;
             _logger = logger;
+            _storeService = storeService;
         }
 
         // 1. יצירת הזמנה חדשה
@@ -36,6 +38,19 @@ namespace Yami.Controllers
                 }
 
                 int userId = int.Parse(claim.Value);
+                var store = await _storeService.GetById(dto.StoreId); // 📌 ודאי שקיים שדה כזה ב-dto וש- _context מוזרק ב-Controller
+
+                if (store == null)
+                {
+                    return NotFound("החנות המבוקשת לא קיימת במערכת");
+                }
+
+                // קריאה לפונקציית העזר שבודקת אם החנות פתוחה כרגע
+                if (!store.IsOpen) // 📌 ודאי שלשדה ב-DB קוראים OpeningHours או השם המדויק אצלך
+                {
+                    // מחזירים שגיאה 400 עם הודעה ברורה שתוצג בריאקט
+                    return BadRequest("לא ניתן לבצע את הרכישה. החנות סגורה כעת!");
+                }
 
                 var order = await _orderService.CreateOrder(userId, dto);
 
@@ -166,6 +181,9 @@ namespace Yami.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+
+
     }
     public class StatusUpdateDto
     {

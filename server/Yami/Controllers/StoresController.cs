@@ -27,5 +27,28 @@ namespace API.Controllers
 
             return Ok(stores);
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                // קריאה לפונקציה שמימשת ב-Service
+                var storeDto = await _storeService.GetById(id);
+
+                // אם החנות לא נמצאה, השרת יחזיר 404 מסודר עם הודעה
+                if (storeDto == null)
+                {
+                    return NotFound(new { message = "החנות המבוקשת לא נמצאה" });
+                }
+
+                // אם נמצאה - מחזירים אותה עם ה-IsOpen המחובר!
+                return Ok(storeDto);
+            }
+            catch (Exception ex)
+            {
+                // במקרה של תקלה לא צפויה
+                return StatusCode(500, $"שגיאת שרת פנימית: {ex.Message}");
+            }
+        }
     }
 }

@@ -5,10 +5,10 @@ import * as signalR from "@microsoft/signalr";
 const containerStyle = { width: "100%", height: "100vh" };
 const customerLocation = { lat: 32.0853, lng: 34.7818 };
 
-const courierIcon = {
+const courierIcon = typeof window !== "undefined" && window.google ? {
   url: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
-  scaledSize: { width: 38, height: 38 },
-};
+  scaledSize: new window.google.maps.Size(38, 38), // שימוש ב-Size הרשמי של גוגל מונע מהאייקון להיעלם
+} : null;
 
 export default function LiveCourierMap({ orderId }) {
   const { isLoaded } = useLoadScript({
@@ -53,17 +53,26 @@ export default function LiveCourierMap({ orderId }) {
 
     startConnection();
 
-    connection.on("ReceiveCourierLocation", (courierId, lat, lng) => {
-      if (!isMounted) return;
-      setCouriers((prev) => {
-        const old = prev[courierId];
-        if (old) {
-          animateMove(courierId, old, { lat, lng });
-          return prev;
-        }
-        return { ...prev, [courierId]: { lat, lng } };
-      });
-    });
+connection.on("ReceiveCourierLocation", (data) => {
+  if (!isMounted || !data) return;
+  
+  // חילוץ הנתונים מתוך האובייקט שהשרת שלח
+  const { courierId, lat, lng } = data; 
+  const newPos = { lat, lng };
+
+  console.log(`Courier ${courierId} moved to:`, newPos);
+
+  setCouriers((prev) => {
+    const old = prev[courierId];
+    if (old) {
+      // הפעלת האנימציה החלקה מנקודה לנקודה
+      animateMove(courierId, old, newPos);
+      return prev;
+    }
+    // אם זה השליח הראשון שנכנס, נוסיף אותו לסטייט
+    return { ...prev, [courierId]: newPos };
+  });
+});
 
     connectionRef.current = connection;
 
@@ -93,24 +102,32 @@ export default function LiveCourierMap({ orderId }) {
 
   if (!isLoaded) return <div>Loading map...</div>;
 
-  return (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={customerLocation}
-      zoom={15}
-      options={{ disableDefaultUI: true, zoomControl: true }}
-    >
-      <Marker position={customerLocation} />
-      {Object.entries(couriers).map(([id, pos]) => (
-        <Marker key={id} position={pos} icon={courierIcon} />
-      ))}
-      {Object.entries(couriers).map(([id, pos]) => (
-        <Polyline
-          key={id}
-          path={[pos, customerLocation]}
-          options={{ strokeColor: "#7B8FF5", strokeWeight: 4 }}
-        />
-      ))}
-    </GoogleMap>
-  );
-}
+return (
+  <GoogleMap
+    mapContainerStyle={containerStyle}
+    center={customerLocation}
+    zoom={15}
+    options={{ disableDefaultUI: true, zoomControl: true }}
+  >
+    {/* המרקר של הלקוח */}
+    <Marker position={customerLocation} />
+
+    {/* המרקרים של השליחים על המפה */}
+    {Object.entries(couriers).map(([id, pos]) => (
+      <Marker key={id} position={pos} icon={courierIcon} />
+    ))}
+
+    {/* קווי הציור המחברים בין כל שליח ללקוח */}
+    {Object.entries(couriers).map(([id, pos]) => (
+      <Polyline
+        key={id}
+        path={[pos, customerLocation]}
+        options={{ 
+          strokeColor: "#7B8FF5", // צבע הקו
+          strokeWeight: 4,        // עובי הקו
+          strokeOpacity: 0.8 
+        }}
+      />
+    ))}
+  </GoogleMap>
+);}
