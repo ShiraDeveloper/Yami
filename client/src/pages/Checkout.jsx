@@ -28,22 +28,23 @@ export default function Checkout() {
     return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
   };
 
-  const getAddressFromCoords = async (lat, lng) => {
+const getAddressFromCoords = async (lat, lng) => {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      // 🌟 הוספנו &accept-language=en בסוף ה-URL כדי להכריח את השרת להחזיר את השמות באנגלית!
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
       const data = await res.json();
-      return data.display_name || "מיקום נוכחי";
+      return data.display_name || "Current location";
     } catch (err) {
-      return "מיקום נוכחי";
+      return "Current location";
     }
   };
 
   const getCurrentLocation = () => {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) return reject("הדפדפן אינו תומך בגישה למיקום");
+      if (!navigator.geolocation) return reject("Browser does not support location access");
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => reject("גישה למיקום נדחתה על ידי המשתמש")
+        () => reject("Location access denied by user")
       );
     });
   };
@@ -52,25 +53,25 @@ export default function Checkout() {
     setError("");
 
     if (cardNumber.length !== 16) {
-      setError("מספר כרטיס חייב להכיל בדיוק 16 ספרות.");
+      setError("A card number must contain exactly 16 digits.");
       return;
     }
     const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
     if (!expiryRegex.test(expiry)) {
-      setError("פורמט תוקף לא תקין (MM/YY).");
+      setError("Invalid expiration format (MM/YY).");
       return;
     }
     if (cvv.length < 3) {
-      setError("קוד CVV לא תקין.");
+      setError("Invalid CVV code.");
       return;
     }
     if (!cardName.trim()) {
-      setError("נא להזין את שם בעל הכרטיס.");
+      setError("Please enter the cardholder's name.");
       return;
     }
 
     if (cart.length === 0) {
-      setError("הסל שלך ריק.");
+      setError("Your cart is empty.");
       return;
     }
 
@@ -112,38 +113,60 @@ export default function Checkout() {
       });
 
       if (response.status === 401) {
-          throw new Error("אינך מחובר או שהחיבור פג תוקף");
+          throw new Error("You are not connected or the connection has expired");
       }
 
       if (!response.ok) {
           const errorMsg = await response.text();
-          throw new Error(errorMsg || "נכשל ביצירת הזמנה");
+          throw new Error(errorMsg || "Failed to create order");
       }
+      // --- הקוד הקיים שלך ---
+      localStorage.removeItem("cart");
+
+      // 🌟 התיקון: משגרים את האירוע כדי לעדכן את ה-Navbar ל-0 באופן מיידי!
+      window.dispatchEvent(new Event("cartUpdated"));
+
+      // 🌟 התיקון (אופציונלי): מאפסים את הסטייט המקומי בעמוד כדי שהטבלה/רשימה תתרוקן
+      if (typeof setCart === "function") setCart([]);
 
       localStorage.removeItem("cart");
-      alert("התשלום בוצע בהצלחה וההזמנה התקבלה!");
+      alert("Payment was successful and the order was accepted!");
       navigate("/my-orders");
 
     } catch (err) {
       console.error(err);
-      setError(err.message || "אירעה שגיאה בתהליך ההזמנה.");
+      setError(err.message || "An error occurred during the ordering process.");
     } finally {
       setLoading(false);
     }
   };
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const itemsTotal = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+    const deliveryPrice =
+    cart.length === 0
+      ? 0
+      : itemsTotal < 50
+      ? 10
+      : itemsTotal < 100
+      ? 15
+      : 20;
+
+  const total = itemsTotal + deliveryPrice;
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>סיכום הזמנה ותשלום</h1>      
+      <h1 style={styles.title}>Order and payment summary</h1>      
 
       <div style={styles.section}>
-        <h3>📍 פרטי משלוח</h3>
-        <p style={styles.label}>כתובת למשלוח (השאר ריק לשימוש ב-GPS):</p>
+        <h3>📍Shipping details</h3>
+        <p style={styles.label}>Shipping address (leave blank for GPS use):</p>
         <input
           type="text"
-          placeholder="עיר, רחוב ומספר בית..."
+          placeholder="City, street and house number..."
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           style={styles.input}
@@ -151,17 +174,17 @@ export default function Checkout() {
       </div>
 
       <div style={styles.section}>
-        <h3>💳 פרטי תשלום (סימולציה)</h3>
+        <h3>💳 Payment details (simulation)</h3>
         <input
           type="text"
-          placeholder="שם בעל הכרטיס"
+          placeholder="Cardholder name"
           value={cardName}
           onChange={(e) => setCardName(e.target.value)}
           style={{...styles.input, marginBottom: "10px"}}
         />
         <input
           type="text"
-          placeholder="מספר כרטיס (16 ספרות)"
+          placeholder="Card number (16 digits)"
           value={cardNumber}
           onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
           style={{...styles.input, marginBottom: "10px"}}
@@ -190,7 +213,7 @@ export default function Checkout() {
       </div>
 
       <div style={styles.section}>
-        <h3>🛒 סיכום סל</h3>
+        <h3>🛒Cart summary</h3>
         {cart.map(item => (
           <div key={item.id} style={styles.item}>
             <span>{item.name} (x{item.quantity})</span>
@@ -198,7 +221,7 @@ export default function Checkout() {
           </div>
         ))}
         <hr style={{border: '0.5px solid #eee'}} />
-        <h2 style={styles.total}>סה"כ לתשלום: ₪{total}</h2>
+        <h2 style={styles.total}>Total payment: ₪{total}</h2>
       </div>
 
       {error && <div style={styles.errorBox}>{error}</div>}
@@ -208,7 +231,7 @@ export default function Checkout() {
         onClick={handleCheckout}
         disabled={loading}
       >
-        {loading ? "מעבד נתונים..." : "בצע הזמנה עכשיו"}
+        {loading ? "Data processor...": "Place an order now"}
       </button>
     </div>
   );

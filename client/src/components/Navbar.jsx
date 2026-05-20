@@ -253,7 +253,7 @@ cartBadge: {
   position: "absolute",
   top: "-6px",
   right: "-6px",
-  backgroundColor: "#EF4444",
+  backgroundColor: "#828282",
   color: "white",
   borderRadius: "50%",
   minWidth: "20px",

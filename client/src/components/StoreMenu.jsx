@@ -43,7 +43,7 @@ export default function StoreMenu() {
   const addToCart = (item) => {
     // 🛑 בדיקה: אם החנות סגורה, מקפיצים ALERT ועוצרים מיד!
     if (store && !store.isOpen) {
-      alert("החנות סגורה כעת, לא ניתן להוסיף מוצרים לעגלה.");
+      alert("The store is currently closed, products cannot be added to the cart.");
       return; // מונע מהמוצר להיכנס ל-localStorage
     }
 
@@ -77,10 +77,10 @@ export default function StoreMenu() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>🍽 תפריט החנות {store?.name ? `- ${store.name}` : ""}</h1>
+      <h1 style={styles.title}>🍽 Store menu{store?.name ? `- ${store.name}` : ""}</h1>
 
       {menus.length === 0 ? (
-        <p style={styles.empty}>אין פריטים בתפריט</p>
+        <p style={styles.empty}>There are no items in the menu</p>
       ) : (
         <div style={styles.grid}>
           {menus.map((menu) => (

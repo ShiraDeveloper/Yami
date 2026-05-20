@@ -27,7 +27,7 @@ const cleanMapStyle = [
   { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#1F2937" }, { fontWeight: "bold" }] }
 ];
 
-export default function LiveCourierMap({ orderId }) {
+export default function TrackOrder({ orderId }) {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
@@ -42,40 +42,71 @@ export default function LiveCourierMap({ orderId }) {
   const courierRef = useRef(null); 
 
   // 🔌 SignalR Hub connection
-  useEffect(() => {
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7234/trackingHub")
-      .withAutomaticReconnect()
-      .build();
+useEffect(() => {
 
-    connection.start().then(() => {
-      connection.invoke("JoinOrder", orderId);
-    }).catch(err => console.error("SignalR Connection Error: ", err));
+  console.log(
+    "TOKEN:",
+    localStorage.getItem("token")
+  );
 
-    connection.on("ReceiveCourierLocation", (courierId, lat, lng) => {
-      const newPos = { lat, lng };
-      
-      // 🌟 התיקון כאן: אם זה המיקום הראשון - נשים אותו ישר, אם לא - נפעיל אנימציה חלקה
-      if (!courierRef.current) {
-        setCourier(newPos);
-        courierRef.current = newPos;
-      } else {
-        smoothMove(courierRef.current, newPos);
+  const connection = new signalR.HubConnectionBuilder()
+    .withUrl(
+      "https://localhost:7234/trackingHub",
+      {
+        accessTokenFactory: () =>
+          localStorage.getItem("token"),
       }
-      
-      // הרצת חישוב המסלול מול גוגל
-      getRoute(newPos);
+    )
+    .withAutomaticReconnect()
+    .build();
+
+  connection.on("ReceiveCourierLocation", (data) => {
+
+    console.log("LIVE DATA:", data);
+
+    const newPos = {
+      lat: Number(data.lat),
+      lng: Number(data.lng),
+    };
+
+    if (!courierRef.current) {
+      setCourier(newPos);
+      courierRef.current = newPos;
+    } else {
+      smoothMove(courierRef.current, newPos);
+    }
+
+    getRoute(newPos);
+  });
+
+  connection.start()
+    .then(async () => {
+
+      console.log("ORDER ID:", orderId);
+
+      await connection.invoke(
+        "JoinOrder",
+        Number(orderId)
+      );
+
+      console.log("JOINED ORDER GROUP");
+    })
+    .catch(err => {
+      console.error("SIGNALR ERROR:", err);
     });
 
-    connectionRef.current = connection;
+  connectionRef.current = connection;
 
-    return () => {
-      if (connectionRef.current) {
-        connectionRef.current.stop();
-      }
-      clearInterval(animationRef.current);
-    };
-  }, [orderId]);
+  return () => {
+
+    if (connectionRef.current) {
+      connectionRef.current.stop();
+    }
+
+    clearInterval(animationRef.current);
+  };
+
+}, [orderId]);
 
   // 🎯 חישוב צעדי האנימציה לתנועה חלקה
   const smoothMove = (startPos, endPos) => {

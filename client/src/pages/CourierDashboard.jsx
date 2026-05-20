@@ -9,6 +9,16 @@ const styles = {
     secondaryBtn: { width: "100%", padding: "15px", backgroundColor: "#F1F1F1", color: "#333", border: "none", borderRadius: "12px", fontWeight: "700", cursor: "pointer", marginTop: "10px" },
     loader: { textAlign: "center", marginTop: "50px", fontSize: "1.2rem", color: "#666" }
 };
+const orderIdBadgeStyle = {
+    backgroundColor: "#f3f4f6",  // רקע אפרפר-בהיר מעודן (Neutral Gray)
+    color: "#1f2937",            // צבע טקסט כהה וקריא
+    padding: "5px 12px",         // מרווח פנימי שיוצר צורה של תגית (Badge)
+    borderRadius: "12px",        // פינות עגולות ומודרניות
+    fontSize: "13px",            // גודל גופן נקי
+    fontWeight: "600",           // טקסט ממודגש מעט
+    display: "inline-flex",
+    alignItems: "center"
+};
 
 export default function CourierDashboard() {
     const [tasks, setTasks] = useState([]);
@@ -101,7 +111,7 @@ export default function CourierDashboard() {
             setNewOffer(order);
 
             try {
-                const audio = new Audio("/sounds/notification.mp3");
+                const audio = new Audio("/sounds/ios_style.wav");
                 audio.volume = 1.0;
                 audio.play();
             } catch (err) {
@@ -110,23 +120,23 @@ export default function CourierDashboard() {
         });
 
         connection.on("OrderTaken", (data) => {
-    console.log("❌ Order taken:", data);
+            console.log("❌ Order taken:", data);
 
-    setNewOffer(prev => {
-        if (prev?.orderId === data.orderId) {
-            return null;
-        }
-        return prev;
-    });
-    });
-    // 📌 מאזין לאירוע שהוספנו בשרת - מעלים את ההצעה מהמסך בשקט
-connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
-    console.log(`🤫 Order ${cancelledOrderId} was cancelled by server.`);
-    setNewOffer(prev => {
-        if (prev?.orderId === cancelledOrderId) return null;
-        return prev;
-    });
-});
+            setNewOffer(prev => {
+                if (prev?.orderId === data.orderId) {
+                    return null;
+                }
+                return prev;
+            });
+        });
+        // 📌 מאזין לאירוע שהוספנו בשרת - מעלים את ההצעה מהמסך בשקט
+        connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
+            console.log(`🤫 Order ${cancelledOrderId} was cancelled by server.`);
+            setNewOffer(prev => {
+                if (prev?.orderId === cancelledOrderId) return null;
+                return prev;
+            });
+        });
         connection.onclose(() => {
             console.warn("🔌 SignalR disconnected");
         });
@@ -195,7 +205,7 @@ connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
                 setNewOffer(null);
                 await fetchTasks();
             } else {
-                alert("ההזמנה כבר נלקחה על ידי שליח אחר");
+                alert("The order has already been taken by another courier");
                 setNewOffer(null);
             }
         } catch (err) {
@@ -208,7 +218,7 @@ connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
         setNewOffer(null);
     };
 
-  // --- עדכון סטטוס משימה ---
+    // --- עדכון סטטוס משימה ---
     const handleCompleteTask = async () => {
         const token = localStorage.getItem("token");
         const currentTask = tasks[currentIndex];
@@ -227,7 +237,7 @@ connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
-                    body: JSON.stringify({   status: 3 }),// סוג 3 מסמן השלמת משימה (איסוף או מסירה)
+                    body: JSON.stringify({ status: 3 }),// סוג 3 מסמן השלמת משימה (איסוף או מסירה)
                 }
             );
 
@@ -256,7 +266,7 @@ connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
     };
 
     if (loading && tasks.length === 0 && !newOffer) {
-        return <div style={styles.loader}>מתחבר למערכת YAMI...</div>;
+        return <div style={styles.loader}>Connecting to the YAMI system...</div>;
     }
 
     const currentTask = tasks[currentIndex];
@@ -267,13 +277,13 @@ connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
             {/* חלונית הצעה חדשה */}
             {isAvailable && newOffer && (
                 <div style={styles.offerCard}>
-                    <div style={{ color: "#FBC02D", fontWeight: "bold", marginBottom: "5px" }}>⚡ הזמנה חדשה זמינה!</div>
+                    <div style={{ color: "#FBC02D", fontWeight: "bold", marginBottom: "5px" }}>⚡ New order available!</div>
                     <h3 style={{ margin: "0 0 10px 0" }}>{newOffer.storeName}</h3>
-                    <p style={{ fontSize: "0.9rem", margin: "5px 0" }}>איסוף מ: {newOffer.storeAddress}</p>
-                    <p style={{ fontSize: "0.85rem", color: "#555", margin: "5px 0" }}>נפח הזמנה: {newOffer.totalVolume}</p>
+                    <p style={{ fontSize: "0.9rem", margin: "5px 0" }}>Collection from: {newOffer.storeAddress}</p>
+                    <p style={{ fontSize: "0.85rem", color: "#555", margin: "5px 0" }}>Order volume: {newOffer.totalVolume}</p>
                     <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-                        <button onClick={() => handleAcceptOffer(newOffer.orderId)} style={styles.primaryBtn}>אשר הגעה</button>
-                        <button onClick={handleRejectOffer} style={styles.secondaryBtn}>דחה</button>
+                        <button onClick={() => handleAcceptOffer(newOffer.orderId)} style={styles.primaryBtn}>Confirm arrival</button>
+                        <button onClick={handleRejectOffer} style={styles.secondaryBtn}>Reject</button>
                     </div>
                 </div>
             )}
@@ -281,17 +291,26 @@ connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
             {/* רשימת משימות פעילה */}
             {isAvailable && tasks.length > 0 && currentTask ? (
                 <div style={styles.taskCard}>
-                    <div style={{ marginBottom: "15px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>     
+                    <div style={{ marginBottom: "15px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ backgroundColor: "#E3F2FD", color: "#1976D2", padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase" }}>
-                            {currentTask.type === 'pickup' ? "שלב 1: איסוף" : "שלב 2: מסירה"}
+                            {currentTask.type === 'pickup' ? "Step 1: Pick-up" : "Step 2: Delivery"}
                         </span>
-                         <span>#{currentTask.id}</span>
-                    </div>
+                    <span style={orderIdBadgeStyle}>Order ID: {currentTask.id}</span>                  
+                      </div>
                     <h2 style={{ margin: "0 0 5px 0", fontSize: "1.5rem" }}>{currentTask.address}</h2>
-                    <p style={{ color: "#666", marginBottom: "25px" }}>{currentTask.customerName || "לקוח Yami"}</p>
+                    {/* שורת שם הלקוח */}
+                    <div style={{ color: "#666", marginBottom: "12px", fontSize: "16px" }}>
+                        <span style={{ color: "#333", fontWeight: "bold", marginRight: "6px" }}>Customer Name:</span>
+                        {currentTask.customer?.name || "Yami Customer"}
+                    </div>
 
+                    {/* שורת טלפון הלקוח */}
+                    <div style={{ color: "#666", marginBottom: "25px", fontSize: "16px" }}>
+                        <span style={{ color: "#333", fontWeight: "bold", marginRight: "6px" }}>Customer Phone:</span>
+                        {currentTask.customer?.Phone || "No Phone Provided"}
+                    </div>
                     <button onClick={handleCompleteTask} style={styles.primaryBtn}>
-                        אישור {currentTask.type === 'pickup' ? "ביצוע איסוף" : "ביצוע מסירה"}
+                        Approval {currentTask.type === 'pickup' ? "Perform a pickup" : "Perform a delivery"}
                     </button>
                 </div>
             ) : (
@@ -302,7 +321,7 @@ connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
                             {isAvailable ? "🛵" : "💤"}
                         </div>
                         <p style={{ fontSize: "1.1rem" }}>
-                            {isAvailable ? "אין משימות כרגע.\nברגע שתתקבל הזמנה, היא תופיע כאן." : "מערכת מנותקת"}
+                            {isAvailable ? "There are no tasks at the moment. Once an invitation is received, it will appear here." : "Disconnected system"}
                         </p>
                     </div>
                 )

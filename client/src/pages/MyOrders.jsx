@@ -7,15 +7,15 @@ export default function MyOrders() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-useEffect(() => {
-  fetchOrders(true);
+  useEffect(() => {
+    fetchOrders(true);
 
-  const interval = setInterval(() => {
-    fetchOrders(false);
-  }, 5000);
+    const interval = setInterval(() => {
+      fetchOrders(false);
+    }, 5000);
 
-  return () => clearInterval(interval);
-}, []);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchOrders = async (showLoader = false) => {
     try {
@@ -112,8 +112,8 @@ useEffect(() => {
             const storeName = order.store?.name || order.Store?.Name || "Unknown Store";
             const date = new Date(order.createdAt || order.CreatedAt);
             const total = order.totalPrice || order.TotalPrice || order.total || 0;
-            const isOpen = ![3, 4, "Delivered", "Canceled"].includes(statusKey);
-
+            // בדיקה האם ההזמנה נמצאת כרגע בשלב הובלה/משלוח
+            const isTrackingAvailable = statusKey === "On the way" || statusKey === 2; // (כולל בדיקה אם זה מגיע כטקסט או כמספר מה-Enum)
             return (
               <div key={orderId} style={styles.card}>
                 <div style={styles.cardLeft}>
@@ -123,8 +123,9 @@ useEffect(() => {
                   <div style={styles.info}>
                     <div style={styles.topLine}>
                       <h3 style={styles.storeName}>{storeName}</h3>
-                      <span style={styles.orderId}>#{orderId}</span>
-                    </div>
+                      <span style={styles.orderIdBadge}>
+                        Order ID: {orderId}
+                      </span>                    </div>
                     <p style={styles.date}>
                       {date.toLocaleDateString()} · {date.toLocaleTimeString([], {
                         hour: "2-digit",
@@ -146,13 +147,13 @@ useEffect(() => {
                 <div style={styles.cardRight}>
                   {total > 0 && <p style={styles.price}>₪{Number(total).toFixed(2)}</p>}
                   <div style={styles.actions}>
-                    <button
+                    {/* <button
                       style={styles.btnGhost}
                       onClick={() => navigate(`/order/${orderId}`)}
                     >
                       Details
-                    </button>
-                    {isOpen && (
+                    </button> */}
+                    {isTrackingAvailable && (
                       <button
                         style={styles.btnPrimary}
                         onClick={() => navigate(`/track/${orderId}`)}
@@ -171,6 +172,7 @@ useEffect(() => {
   );
 }
 
+// כל הסטיילים מרוכזים כעת בתוך אובייקט אחד תקין
 const styles = {
   container: {
     padding: "40px 20px",
@@ -234,6 +236,19 @@ const styles = {
     fontWeight: 600,
     color: "#1F2937",
   },
+  
+  // 🌟 הנה התיקון: הכנסנו אותו ישירות לתוך styles עם נקודתיים
+  orderIdBadge: {
+    backgroundColor: "#f3f4f6",  // רקע אפרפר-בהיר מעודן
+    color: "#1f2937",            // צבע טקסט כהה
+    padding: "4px 10px",         // מרווח פנימי קטן ליצירת תגית
+    borderRadius: "12px",        // פינות עגולות
+    fontSize: "13px",            // גודל גופן נקי
+    fontWeight: "600",           // טקסט מודגש
+    display: "inline-flex",
+    alignItems: "center"
+  },
+
   orderId: { fontSize: "12px", color: "#9CA3AF", fontWeight: 500 },
   date: { margin: "4px 0 8px", fontSize: "13px", color: "#6B7280" },
   badge: {

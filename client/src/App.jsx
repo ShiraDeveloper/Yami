@@ -11,6 +11,7 @@ import Checkout from "./pages/Checkout";
 import LiveCourierMap from "./pages/LiveCourierMap";
 import TrackOrder from "./pages/TrackOrder";
 import CourierDashboard from "./pages/CourierDashboard";
+import CourierWazeMap from "./pages/LiveDeliveryWaze";
 
 // פונקציית עזר לפענוח הטוקן בטעינת האפליקציה
 function getRoleFromToken() {
@@ -56,6 +57,8 @@ function AppContent() {
         <Route path="/live-courier-map" element={<LiveCourierMap />} />
         <Route path="/track/:orderId" element={<TrackOrder />} />
         <Route path="/courier" element={<CourierDashboard />} />
+        {/* <Route path="/courier-map" element={<LiveDeliveryWaze />} /> */}
+
       </Routes>
     </>
   );

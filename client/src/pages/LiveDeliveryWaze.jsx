@@ -5,7 +5,7 @@ import * as signalR from "@microsoft/signalr";
 const containerStyle = { width: "100%", height: "100vh" };
 const customerLocation = { lat: 32.0853, lng: 34.7818 };
 
-export default function LiveCourierMap({ orderId }) {
+export default function LiveDeliveryWaze({ orderId }) {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
