@@ -195,6 +195,8 @@ public class OrderService : IOrderService
 
             order.Status = OrderStatus.Canceled; // עדכון הסטטוס לביטול
 
+            await _hubContext.Clients.All.SendAsync("RemoveOrderFromScreen", order.Id);
+
             // נסמן גם את כל ההצעות שלא נענו בגל האחרון כדחויות אוטומטית
             var remainingOffers = await db.DeliveryOffer
                 .Where(doffer => doffer.OrderId == order.Id && doffer.Accepted == null)
@@ -282,28 +284,85 @@ public class OrderService : IOrderService
 
     public async Task<Order> UpdateStatus(int orderId, OrderStatus status, int userId, string role)
     {
+        // 1. שליפת ההזמנה המקורית מה-Repository
+        // מומלץ לוודא שה-Repository טוען את ה-OrderItems וה-Menu כדי שהחישוב יעבוד פיקס
         var order = await _orderRepository.GetById(orderId) ?? throw new Exception("Order not found");
+
+        // עדכון הסטטוס הקיים
         order.Status = status;
         if (status == OrderStatus.Delivered) order.DeliveredAt = DateTime.UtcNow;
+
+        // 2. 🌟 התיקון: אם ההזמנה סומנה כנמסרה (Delivered), מחזירים את המשאבים לשליח
+        if (status == OrderStatus.Delivered && order.CourierId.HasValue)
+        {
+            var courier = await _courierRepository.GetById(order.CourierId.Value);
+            if (courier != null)
+            {
+                // חישוב הנפח שצריך להחזיר לקופסה של השליח
+                if (order.OrderItems != null && order.OrderItems.Any())
+                {
+                    double totalOrderVolume = order.OrderItems.Sum(oi => (oi.Menu?.Volume ?? 0) * oi.Quantity);
+
+                    // החזרת הנפח: מגדילים חזרה את הנפח הנותר בקופסה
+                    courier.RemainingBoxVolume += totalOrderVolume;
+                }
+
+                // הפחתת מונה ההזמנות הפעילות של השליח ב-1 כדי שיוכל לקבל הזמנות חדשות
+                if (courier.TotalDeliveries > 0)
+                {
+                    courier.TotalDeliveries -= 1;
+                }
+
+                // שמירת העדכון של השליח בנפרד בבסיס הנתונים
+                await _courierRepository.Update(courier);
+            }
+        }
+
+        // 3. שמירת עדכון סטטוס ההזמנה (הקוד הקיים שלך)
         await _orderRepository.Update(order);
         return order;
     }
-
     public async Task<Order> AssignCourier(int orderId, int courierId)
     {
+        // 1. שלפת ההזמנה והשליח (הקוד הקיים שלך)
         var order = await _orderRepository.GetById(orderId) ?? throw new Exception("Order not found");
         var courier = await _courierRepository.GetById(courierId) ?? throw new Exception("Courier not found");
+
+        // 2. עדכון ההזמנה (הקוד הקיים שלך)
         order.CourierId = courier.Id;
         order.Status = OrderStatus.InProgress;
+
+        // 3. 🌟 התיקון: חישוב נפח ההזמנה ועדכון השליח
+        // שימי לב: אם ה-Repository שלך לא טוען את ה-OrderItems, ודאי שיש לך גישה אליהם.
+        // בהנחה ש-order.OrderItems טעון או זמין, נבצע חישוב:
+        if (order.OrderItems != null && order.OrderItems.Any())
+        {
+            double totalOrderVolume = order.OrderItems.Sum(oi => (oi.Menu?.Volume ?? 0) * oi.Quantity);
+
+            // עדכון שדות השליח
+            courier.RemainingBoxVolume -= totalOrderVolume;
+            courier.TotalAmountDeliveries += 1;
+        }
+        else
+        {
+            // הערת הגנה: אם ה-Repository לא מביא את ה-Items, תצטרכי לשלוף אותם דרך Repository ייעודי או Context
+            // אבל אם ה-Include כבר מובנה בתוך ה-GetById של ה-Repository, זה יעבוד פיקס!
+        }
+
+        courier.TotalDeliveries += 1; // הגדלת כמות ההזמנות הפעילות של השליח ב-1
+
+        // 4. שמירה של שני הרכיבים ב-DB דרך ה-Repositories
         await _orderRepository.Update(order);
-        await _hubContext.Clients.All
-    .SendAsync("OrderTaken", new
-    {
-        orderId = orderId
-    });
+        await _courierRepository.Update(courier); // ◄ שמירת העדכון של השליח!
+
+        // 5. הפצת עדכון ב-SignalR (הקוד הקיים שלך)
+        await _hubContext.Clients.All.SendAsync("OrderTaken", new
+        {
+            orderId = orderId
+        });
+
         return order;
     }
-
     private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
     {
         const double R = 6371;
@@ -312,6 +371,7 @@ public class OrderService : IOrderService
         var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
         return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
     }
+
 
     public Task<Order?> GetById(int id) => _orderRepository.GetById(id);
     public async Task<List<Order>> GetAll() => (await _orderRepository.GetAll()).ToList();

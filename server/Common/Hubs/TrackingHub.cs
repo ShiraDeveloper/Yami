@@ -21,6 +21,7 @@ namespace Common.Hubs
         /// </summary>
         public override async Task OnConnectedAsync()
         {
+            Console.WriteLine("HUB CONNECTED");
             // חילוץ ה-ID מתוך ה-Token עם כיסוי מלא לכל סוגי ה-Claims הנפוצים (id, sub, NameIdentifier)
             var userId = Context.User?.FindFirst("id")?.Value
                          ?? Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -46,10 +47,38 @@ namespace Common.Hubs
         /// </summary>
         public async Task JoinOrder(int orderId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"order-{orderId}");
-            Console.WriteLine($"[SignalR] Connection {Context.ConnectionId} joined tracking group: order-{orderId}");
-        }
+            try
+            {
+                Console.WriteLine("==========");
+                Console.WriteLine("JOIN ORDER CALLED");
+                Console.WriteLine($"ORDER ID: {orderId}");
+                Console.WriteLine($"CONNECTION ID: {Context.ConnectionId}");
 
+                if (orderId <= 0)
+                {
+                    throw new Exception("INVALID ORDER ID");
+                }
+
+                string groupName = $"order-{orderId}";
+
+                Console.WriteLine($"GROUP: {groupName}");
+
+                await Groups.AddToGroupAsync(
+                    Context.ConnectionId,
+                    groupName
+                );
+
+                Console.WriteLine("JOIN SUCCESS");
+                Console.WriteLine("==========");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("JOIN ERROR:");
+                Console.WriteLine(ex.Message);
+
+                throw;
+            }
+        }
         /// <summary>
         /// עזיבת קבוצת מעקב של הזמנה.
         /// </summary>
@@ -87,6 +116,40 @@ namespace Common.Hubs
         public async Task JoinCourierGroup(int userId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
+        }
+
+        /// <summary>
+        /// הצטרפות לקבוצת עריכת רכבים לשעות ספציפיות (עבור צפייה בזמן אמת בשינויי סטטוס)
+        /// </summary>
+        public async Task JoinCarSelectionGroup(string timeSlotKey)
+        {
+            // timeSlotKey צורה: "2024-05-19_09-18" (תאריך_שעות התחלה-סיום)
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"cars-{timeSlotKey}");
+            Console.WriteLine($"[SignalR] Connection {Context.ConnectionId} joined car group: cars-{timeSlotKey}");
+        }
+
+        /// <summary>
+        /// עזיבת קבוצת עריכת רכבים
+        /// </summary>
+        public async Task LeaveCarSelectionGroup(string timeSlotKey)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"cars-{timeSlotKey}");
+            Console.WriteLine($"[SignalR] Connection {Context.ConnectionId} left car group: cars-{timeSlotKey}");
+        }
+
+        /// <summary>
+        /// הפצת עדכון סטטוס רכב לכל המשתמשים הצופים בשעות זהות
+        /// זה נקרא מהשרות/קונטרולר כשמישהו מזמין או מבטל הזמנה
+        /// </summary>
+        public async Task BroadcastCarStatusUpdate(int carId, string status, string timeSlotKey)
+        {
+            await Clients.Group($"cars-{timeSlotKey}")
+                .SendAsync("CarStatusUpdated", new
+                {
+                    carId,
+                    status, // "Available", "Partially Available", "Occupied"
+                    timestamp = DateTime.UtcNow
+                });
         }
 
     }

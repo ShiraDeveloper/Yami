@@ -2,6 +2,8 @@
 using Repository.Interfaces;
 using Common.Dto;
 using Service.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Service.Services
 {
@@ -16,13 +18,15 @@ namespace Service.Services
 
         public async Task<List<StoreDto>> GetStores(double userLat, double userLng, string? search, string? kosher)
         {
+            // 1. שליפת כל החנויות ממסד הנתונים
             var stores = await _storeRepository.GetAll();
 
+            // 2. סינון חנויות שיש להן מיקום תקין בלבד (הורדנו מכאן את החסימה של s.IsOpen)
             stores = stores
                 .Where(s => s.Latitude.HasValue && s.Longitude.HasValue)
-                .Where(s => s.IsOpen)
                 .ToList();
 
+            // 3. סינון לפי טקסט חופשי (חיפוש שם החנות)
             if (!string.IsNullOrEmpty(search))
             {
                 stores = stores
@@ -30,6 +34,7 @@ namespace Service.Services
                     .ToList();
             }
 
+            // 4. סינון לפי תגיות כשרות
             if (!string.IsNullOrEmpty(kosher))
             {
                 stores = stores
@@ -38,6 +43,7 @@ namespace Service.Services
                     .ToList();
             }
 
+            // 5. מציאת הסניף הקרוב ביותר מבין חנויות בעלות אותו שם (למניעת כפילויות ברשתות)
             var closestStores = stores
                 .GroupBy(s => s.Name)
                 .Select(g =>
@@ -51,6 +57,7 @@ namespace Service.Services
                 )
                 .ToList();
 
+            // 6. מיפוי ל-DTO וחישוב הסטטוס הדינמי (פתוח/סגור) לכל חנות בנפרד
             var storeDtos = closestStores
                 .Select(s => new StoreDto
                 {
@@ -61,7 +68,10 @@ namespace Service.Services
                     Longitude = s.Longitude!.Value,
                     KosherTags = s.KosherTags,
                     OpenHours = s.OpenHours,
-                    IsOpen = s.IsOpen,
+
+                    // 🌟 השינוי הקריטי: חישוב דינמי לפי השעה הנוכחית האמיתית
+                    IsOpen = IsStoreOpenNow(s.OpenHours),
+
                     Phone = s.Phone,
                     OwnerId = s.OwnerId,
                     DistanceFromUser = HaversineDistance(
@@ -75,7 +85,6 @@ namespace Service.Services
 
             return storeDtos;
         }
-
         public async Task<List<StoreDto>> GetAll()
         {
             var stores = await _storeRepository.GetAll();
@@ -89,16 +98,43 @@ namespace Service.Services
                 Longitude = s.Longitude ?? 0,
                 KosherTags = s.KosherTags,
                 OpenHours = s.OpenHours,
-                IsOpen = s.IsOpen,
+                IsOpen = IsStoreOpenNow(s.OpenHours),
                 Phone = s.Phone,
                 OwnerId = s.OwnerId
             }).ToList();
         }
-        public Task<StoreDto> GetById(int id)
+        public async Task<StoreDto> GetById(int id)
         {
-            throw new NotImplementedException();
-        }
+            // 1. שליפת החנות מבסיס הנתונים לפי ה-ID
+            var store = await _storeRepository.GetById(id);
 
+            // 2. הגנה: אם החנות לא נמצאה ב-DB, נחזיר null
+            if (store == null)
+            {
+                return null;
+            }
+            bool storeIsOpenNow = IsStoreOpenNow(store.OpenHours);
+
+            // 3. חישוב בזמן אמת: האם החנות פתוחה כרגע?
+
+            // 4. מיפוי (Mapping) מלא ל-StoreDto שלך
+            var storeDto = new StoreDto
+            {
+                Id = store.Id,
+                Name = store.Name,
+                Address = store.Address,
+                Latitude = store.Latitude,
+                Longitude = store.Longitude,
+                KosherTags = store.KosherTags,
+                OpenHours = store.OpenHours,   // מחזיר את המחרוזת "08:00-22:00"
+                IsOpen = storeIsOpenNow,       // 🌟 מעדכן אוטומטית true או false!
+                Phone = store.Phone,
+                OwnerId = store.OwnerId
+                // DistanceFromUser יחושב בהמשך במידת הצורך
+            };
+
+            return storeDto;
+        }
         public Task<StoreDto> Add(StoreDto entity)
         {
             throw new NotImplementedException();
@@ -130,6 +166,52 @@ namespace Service.Services
 
             return R * c;
         }
+
+        public bool IsStoreOpenNow(string openingHoursString)
+        {
+            // הגנה: אם השדה ב-Database ריק או null, נניח שהחנות סגורה
+            if (string.IsNullOrWhiteSpace(openingHoursString))
+            {
+                return false;
+            }
+
+            try
+            {
+                // 1. פירוק המחרוזת לפי המקף (-)
+                // "08:00-22:00" הופך למערך של שני איברים: ["08:00", "22:00"]
+                var parts = openingHoursString.Split('-');
+                if (parts.Length != 2)
+                {
+                    return false; // אם הפורמט בטעות לא תקין ב-DB
+                }
+
+                // 2. המרת הטקסט של שעת הפתיחה ושעת הסגירה לזמן אמיתי (TimeSpan)
+                TimeSpan openTime = TimeSpan.Parse(parts[0].Trim()); // יהפוך ל- 08:00:00
+                TimeSpan closeTime = TimeSpan.Parse(parts[1].Trim()); // יהפוך ל- 22:00:00
+
+                // 3. חילוץ השעה הנוכחית של השרת (לפי השעון של המחשב/שרת כרגע)
+                TimeSpan currentTime = DateTime.Now.TimeOfDay;
+
+                // 4. בדיקת טווח השעות
+                if (openTime <= closeTime)
+                {
+                    // מקרה רגיל: שעת הסגירה באותו היום (למשל מ-08:00 בבוקר עד 22:00 בלילה)
+                    return currentTime >= openTime && currentTime <= closeTime;
+                }
+                else
+                {
+                    // מקרה קצה: חנויות שפתוחות מעבר לחצות (למשל מ-18:00 בערב עד 02:00 לפנות בוקר של היום למחרת)
+                    return currentTime >= openTime || currentTime <= closeTime;
+                }
+            }
+            catch (Exception ex)
+            {
+                // אם ההמרה נכשלה בגלל טקסט לא חוקי שמישהו הכניס בטעות ל-DB
+                Console.WriteLine($"Error parsing opening hours: {ex.Message}");
+                return false;
+            }
+        }
+
 
         private static double ToRadians(double angle) => angle * (Math.PI / 180);
     }

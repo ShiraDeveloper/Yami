@@ -11,8 +11,8 @@ namespace Common.Dto
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public string Address { get; set; } = null!;
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public string? KosherTags { get; set; }
         public string? OpenHours { get; set; }
         public bool IsOpen { get; set; }
