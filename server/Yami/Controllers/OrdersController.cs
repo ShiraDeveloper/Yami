@@ -181,7 +181,28 @@ namespace Yami.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpGet("route")]
+        public async Task<IActionResult> GetRoute()
+        {
+            try
+            {
+                int userId = GetUserId();
 
+                int courierId =
+                    await _orderService.GetCourierIdByUserId(userId);
+
+                var route =
+                    await _orderService.GetCourierRoute(courierId);
+
+                return Ok(route);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting courier route");
+
+                return StatusCode(500, ex.Message);
+            }
+        }
 
 
     }
