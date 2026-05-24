@@ -111,7 +111,7 @@ export default function CourierDashboard() {
             setNewOffer(order);
 
             try {
-                const audio = new Audio("/sounds/ios_style.wav");
+                const audio = new Audio("/sounds/message.mp3");
                 audio.volume = 1.0;
                 audio.play();
             } catch (err) {
@@ -191,6 +191,49 @@ export default function CourierDashboard() {
 
     }, [API_BASE_URL, isAvailable]);
 
+    // --- שליחת מיקום בזמן אמת ---
+useEffect(() => {
+    if (!connectionRef.current) return;
+
+    if (!tasks.length) return;
+
+    const activeOrder = tasks[0];
+
+    const watchId = navigator.geolocation.watchPosition(
+        async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            console.log("📍 Sending location:", lat, lng);
+
+            try {
+                await connectionRef.current.invoke(
+                    "UpdateCourierLocation",
+                    activeOrder.courierId || 0,
+                    activeOrder.id,
+                    lat,
+                    lng
+                );
+
+                console.log("✅ Location sent");
+            } catch (err) {
+                console.error("❌ Send location error:", err);
+            }
+        },
+        (err) => {
+            console.error("GPS ERROR:", err);
+        },
+        {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 5000
+        }
+    );
+
+    return () => {
+        navigator.geolocation.clearWatch(watchId);
+    };
+}, [tasks]);
 
     // --- אישור הצעת משלוח ---
     const handleAcceptOffer = async (orderId) => {
@@ -271,6 +314,7 @@ export default function CourierDashboard() {
 
     const currentTask = tasks[currentIndex];
 
+    
     return (
         <div style={styles.appContainer}>
 

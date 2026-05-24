@@ -11,9 +11,7 @@ import Checkout from "./pages/Checkout";
 import LiveCourierMap from "./pages/LiveCourierMap";
 import TrackOrder from "./pages/TrackOrder";
 import CourierDashboard from "./pages/CourierDashboard";
-import CourierWazeMap from "./pages/LiveDeliveryWaze";
 
-// פונקציית עזר לפענוח הטוקן בטעינת האפליקציה
 function getRoleFromToken() {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
   if (!token) return null;
@@ -30,11 +28,30 @@ function getRoleFromToken() {
 function AppContent() {
   const location = useLocation();
   const role = getRoleFromToken();
+  const [newOffer, setNewOffer] = useState(null); // סטייט גלובלי להצעה חדשה
 
-  const hideNavbarRoutes = ["/", "/register"];
+  const hideNavbarRoutes = ["/", "/register", "/login"];
   const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
 
-  // לוגיקה לניתוב אוטומטי של משתמש שכבר מחובר ומנסה להגיע לדף הלוגין ("/")
+  // לוגיקה גלובלית לבדיקת הצעות - תרוץ מכל עמוד אם השליח מחובר
+  useEffect(() => {
+    if (role !== "Delivery") return;
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch('/api/courier/check-for-offers'); // נתיב ה-API שלך
+        const data = await response.json();
+        if (data && data.offer) {
+          setNewOffer(data.offer);
+        }
+      } catch (err) {
+        console.error("Error checking offers", err);
+      }
+    }, 10000); // בדיקה כל 10 שניות
+
+    return () => clearInterval(interval);
+  }, [role]);
+
   if (location.pathname === "/" && role) {
     if (role === "Delivery") return <Navigate to="/courier" replace />;
     if (role === "Admin") return <Navigate to="/admin" replace />;
@@ -44,6 +61,16 @@ function AppContent() {
   return (
     <>
       {shouldShowNavbar && <Navbar />}
+
+      {/* התראה גלובלית שתקפוץ מעל הכל אם יש הצעה חדשה */}
+      {newOffer && (
+        <div style={{ position: 'fixed', top: 10, right: 10, zIndex: 9999, background: '#008080', color: '#fff', padding: '15px', borderRadius: '8px' }}>
+          יש לך הצעת משלוח חדשה!
+          <button onClick={() => { setNewOffer(null); window.location.href = '/courier'; }}>
+            צפה בהצעה
+          </button>
+        </div>
+      )}
       
       <Routes>
         <Route path="/" element={<Login />} />
@@ -56,9 +83,8 @@ function AppContent() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/live-courier-map" element={<LiveCourierMap />} />
         <Route path="/track/:orderId" element={<TrackOrder />} />
-        <Route path="/courier" element={<CourierDashboard />} />
-        {/* <Route path="/courier-map" element={<LiveDeliveryWaze />} /> */}
-
+        <Route path="/courier" element={<CourierDashboard newOffer={newOffer} />} />
+        <Route path="/courier-map" element={<LiveCourierMap />} />
       </Routes>
     </>
   );
