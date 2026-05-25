@@ -203,6 +203,29 @@ namespace Yami.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        // 6. שליפת הצעה ממתינה עבור שליח - חלוקה נקייה לשכבות
+        //[Authorize]
+        //[HttpGet("check-offers")]
+        //public async Task<IActionResult> CheckForOffers()
+        //{
+        //    try
+        //    {
+        //        int userId = GetUserId();
+        //        int courierId = await _orderService.GetCourierIdByUserId(userId);
+
+        //        if (courierId == 0) return NotFound("המשתמש אינו שליח במערכת");
+
+        //        // קריאה לשכבת השירות (Service) במקום פנייה ישירה ל-DB
+        //        var offer = await _orderService.GetPendingOfferForCourier(courierId);
+
+        //        return Ok(new { offer });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error checking offers for courier");
+        //        return StatusCode(500, "שגיאת שרת פנימית בקבלת הצעות");
+        //    }
+        //}
 
 
     }
