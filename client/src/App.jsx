@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -11,6 +11,7 @@ import Checkout from "./pages/Checkout";
 import LiveCourierMap from "./pages/LiveCourierMap";
 import TrackOrder from "./pages/TrackOrder";
 import CourierDashboard from "./pages/CourierDashboard";
+import UnifiedDeliveryScreen from "./pages/UnifiedDeliveryScreen";
 
 function getRoleFromToken() {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -27,30 +28,40 @@ function getRoleFromToken() {
 
 function AppContent() {
   const location = useLocation();
+  const navigate = useNavigate();
   const role = getRoleFromToken();
-  const [newOffer, setNewOffer] = useState(null); // סטייט גלובלי להצעה חדשה
+  const [newOffer, setNewOffer] = useState(null);
 
   const hideNavbarRoutes = ["/", "/register", "/login"];
   const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
 
-  // לוגיקה גלובלית לבדיקת הצעות - תרוץ מכל עמוד אם השליח מחובר
-  useEffect(() => {
-    if (role !== "Delivery") return;
+  // useEffect(() => {
+  //   if (role !== "Delivery") return;
 
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch('/api/courier/check-for-offers'); // נתיב ה-API שלך
-        const data = await response.json();
-        if (data && data.offer) {
-          setNewOffer(data.offer);
-        }
-      } catch (err) {
-        console.error("Error checking offers", err);
-      }
-    }, 10000); // בדיקה כל 10 שניות
+  //   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
-    return () => clearInterval(interval);
-  }, [role]);
+  //   const interval = setInterval(async () => {
+  //     try {
+  //       const response = await fetch('/api/Orders/check-offers', {
+  //         headers: {
+  //           'Authorization': `Bearer ${token}`,
+  //           'Content-Type': 'application/json'
+  //         }
+  //       });
+
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         if (data && data.offer) {
+  //           setNewOffer(data.offer);
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Error checking offers:", err);
+  //     }
+  //   }, 10000);
+
+  //   return () => clearInterval(interval);
+  // }, [role]);
 
   if (location.pathname === "/" && role) {
     if (role === "Delivery") return <Navigate to="/courier" replace />;
@@ -62,15 +73,14 @@ function AppContent() {
     <>
       {shouldShowNavbar && <Navbar />}
 
-      {/* התראה גלובלית שתקפוץ מעל הכל אם יש הצעה חדשה */}
-      {newOffer && (
+      {/* {newOffer && (
         <div style={{ position: 'fixed', top: 10, right: 10, zIndex: 9999, background: '#008080', color: '#fff', padding: '15px', borderRadius: '8px' }}>
           יש לך הצעת משלוח חדשה!
-          <button onClick={() => { setNewOffer(null); window.location.href = '/courier'; }}>
+          <button style={{marginLeft: '10px'}} onClick={() => { setNewOffer(null); navigate('/courier'); }}>
             צפה בהצעה
           </button>
         </div>
-      )}
+      )} */}
       
       <Routes>
         <Route path="/" element={<Login />} />
@@ -84,7 +94,7 @@ function AppContent() {
         <Route path="/live-courier-map" element={<LiveCourierMap />} />
         <Route path="/track/:orderId" element={<TrackOrder />} />
         <Route path="/courier" element={<CourierDashboard newOffer={newOffer} />} />
-        <Route path="/courier-map" element={<LiveCourierMap />} />
+        <Route path="/courier-map" element={<UnifiedDeliveryScreen />} />
       </Routes>
     </>
   );

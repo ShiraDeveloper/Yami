@@ -61,6 +61,7 @@ export default function CourierDashboard() {
             if (res.ok) {
                 const data = await res.json();
                 setTasks(data);
+                localStorage.setItem("yami_current_tasks", JSON.stringify(data));
             } else if (res.status === 400) {
                 setTasks([]);
             }
@@ -192,48 +193,61 @@ export default function CourierDashboard() {
     }, [API_BASE_URL, isAvailable]);
 
     // --- שליחת מיקום בזמן אמת ---
-useEffect(() => {
-    if (!connectionRef.current) return;
+    useEffect(() => {
+        if (!tasks.length) return;
 
-    if (!tasks.length) return;
+        const activeOrder = tasks[0];
 
-    const activeOrder = tasks[0];
+        const watchId = navigator.geolocation.watchPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
 
-    const watchId = navigator.geolocation.watchPosition(
-        async (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
+                console.log("📍 Sending location:", lat, lng);
 
-            console.log("📍 Sending location:", lat, lng);
+                try {
+                    const connection = connectionRef.current;
 
-            try {
-                await connectionRef.current.invoke(
-                    "UpdateCourierLocation",
-                    activeOrder.courierId || 0,
-                    activeOrder.id,
-                    lat,
-                    lng
-                );
+                    // 🔥 ההגנה שחסרה אצלך
+                    if (
+                        !connection ||
+                        connection.state !== signalR.HubConnectionState.Connected
+                    ) {
+                        console.warn("⚠️ SignalR not connected yet");
+                        return;
+                    }
 
-                console.log("✅ Location sent");
-            } catch (err) {
-                console.error("❌ Send location error:", err);
-            }
-        },
-        (err) => {
-            console.error("GPS ERROR:", err);
-        },
-        {
-            enableHighAccuracy: true,
-            maximumAge: 0,
-            timeout: 5000
-        }
-    );
+                    await connection.invoke(
+                        "UpdateCourierLocation",
+                        activeOrder.courierId || 0,
+                        activeOrder.id,
+                        lat,
+                        lng
+                    );
 
-    return () => {
-        navigator.geolocation.clearWatch(watchId);
-    };
-}, [tasks]);
+                    console.log("✅ Location sent");
+
+                } catch (err) {
+                    console.error("❌ Send location error:", err);
+                }
+            },
+            (err) => {
+                if (err.code === 3) {
+                    console.warn("⌛ GPS timeout");
+                } else {
+                    console.error("GPS ERROR:", err);
+                }
+            }, {
+            enableHighAccuracy: false,
+            maximumAge: 1000,
+            timeout: 15000
+        });
+
+        return () => {
+            navigator.geolocation.clearWatch(watchId);
+        };
+
+    }, [tasks]);
 
     // --- אישור הצעת משלוח ---
     const handleAcceptOffer = async (orderId) => {
@@ -314,7 +328,7 @@ useEffect(() => {
 
     const currentTask = tasks[currentIndex];
 
-    
+
     return (
         <div style={styles.appContainer}>
 
@@ -339,8 +353,8 @@ useEffect(() => {
                         <span style={{ backgroundColor: "#E3F2FD", color: "#1976D2", padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase" }}>
                             {currentTask.type === 'pickup' ? "Step 1: Pick-up" : "Step 2: Delivery"}
                         </span>
-                    <span style={orderIdBadgeStyle}>Order ID: {currentTask.id}</span>                  
-                      </div>
+                        <span style={orderIdBadgeStyle}>Order ID: {currentTask.id}</span>
+                    </div>
                     <h2 style={{ margin: "0 0 5px 0", fontSize: "1.5rem" }}>{currentTask.address}</h2>
                     {/* שורת שם הלקוח */}
                     <div style={{ color: "#666", marginBottom: "12px", fontSize: "16px" }}>

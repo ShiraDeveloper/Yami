@@ -8,11 +8,9 @@ import {
 import * as signalR from "@microsoft/signalr";
 
 const containerStyle = { 
-  width: "100vw", 
-  height: "100vh",
-  position: "absolute",
-  top: 0,
-  left: 0
+  width: "100%", 
+  height: "100%",
+  // position: "relative"
 };
 
 const DEFAULT_CENTER = { lat: 32.0853, lng: 34.7818 };
@@ -221,7 +219,7 @@ export default function LiveCourierMap() {
             }
           },
           (error) => console.error("GPS error:", error),
-          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
         );
       }
     };
@@ -237,20 +235,20 @@ export default function LiveCourierMap() {
   if (loadError) return <div style={{ padding: "20px", color: "red" }}>שגיאה בטעינת המפה.</div>;
   if (!isLoaded) return <div style={{ padding: "20px" }}>טוען מערכת ניווט...</div>;
 
-  return (
-    <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
+return (
+    // 🔥 שינוי: במקום 100vw ו-100vh, השתמשנו ב-100% כדי שיתפוס את ה-70% שנתנו לו באבא
+    <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <GoogleMap
-        mapContainerStyle={containerStyle}
+        mapContainerStyle={containerStyle} // הסטייל הזה כבר מוגדר כ-100%, 100% וזה מצוין
         defaultCenter={DEFAULT_CENTER}
-        center={mapCenter} 
+        center={courier || DEFAULT_CENTER} // שימוש במיקום השליח כמרכז המפה
         zoom={16} 
         onLoad={(map) => {
           mapRef.current = map;
-          window.google.maps.event.trigger(map, "resize");
         }}
         options={cleanMapOptions}
       >
-        {/* 🔵 השליח (נקודה כחולה מהבהבת) */}
+        {/* המרקרים וה-Directions נשארים בדיוק כפי שהם */}
         {courier && (
           <Marker 
             position={courier} 
@@ -263,7 +261,6 @@ export default function LiveCourierMap() {
           />
         )}
 
-        {/* 📦 יעדי ההזמנות הממתינות לשליח */}
         {orders.length > 0 && orders
           .filter((o) => o.status === "pending")
           .map((o) => (
@@ -279,7 +276,6 @@ export default function LiveCourierMap() {
             />
           ))}
 
-        {/* 🛣️ קו הניווט הכחול של ה-Directions */}
         {directions && (
           <DirectionsRenderer
             directions={directions}
