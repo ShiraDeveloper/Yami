@@ -26,8 +26,6 @@ public class CourierController : ControllerBase
         _trackingService = trackingService;
     }
 
-    // ================= 1. מציאת שליח =================
-
     [HttpGet("match")]
     public async Task<ActionResult<int?>> MatchCourier(
         double orderLat,
@@ -41,7 +39,6 @@ public class CourierController : ControllerBase
         return Ok(courierId);
     }
 
-    // ================= 2. מסלול שליח =================
 
     [HttpGet("route/{courierId}")]
     [Authorize(Roles = "Delivery")]
@@ -57,11 +54,9 @@ public class CourierController : ControllerBase
         if (courier == null)
             return NotFound("Courier not found");
 
-        // הערה: BuildRoute צריך להיות מממוש בשירות הקצאה
         return Ok(new { courierId, message = "Route calculation not yet implemented" });
     }
 
-    // ================= 3. עדכון מיקום =================
 
     [HttpPost("update-location")]
     [Authorize(Roles = "Delivery")]
@@ -71,7 +66,6 @@ public class CourierController : ControllerBase
         return Ok();
     }
 
-    // ================= 4. קבלת מיקום לפי הזמנה =================
 
     [HttpGet("order/{orderId}/location")]
     [Authorize(Roles = "Customer,Delivery")]
@@ -84,12 +78,10 @@ public class CourierController : ControllerBase
 
         return Ok(result);
     }
-    // ================= 5. ניהול זמינות שליח (מחובר/מנותק) =================
 
     [HttpGet("availability-status")]
     public async Task<IActionResult> GetAvailabilityStatus()
     {
-        // חילוץ ה-UserId מהטוקן של השליח המחובר
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier) ?? User.FindFirst("id");
         if (userIdClaim == null) return Unauthorized();
         int userId = int.Parse(userIdClaim.Value);
@@ -107,7 +99,6 @@ public class CourierController : ControllerBase
     [Authorize(Roles = "Delivery")]
     public async Task<IActionResult> ToggleAvailability()
     {
-        // חילוץ ה-UserId מהטוקן
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier) ?? User.FindFirst("id");
         if (userIdClaim == null) return Unauthorized();
         int userId = int.Parse(userIdClaim.Value);
@@ -118,10 +109,8 @@ public class CourierController : ControllerBase
         if (courier == null)
             return NotFound("Courier profile not found");
 
-        // היפוך הסטטוס
         courier.IsAvailable = !courier.IsAvailable;
 
-        // עדכון באמצעות ה-Repository הקיים שלך
         await _courierRepository.Update(courier);
 
         return Ok(new { isAvailable = courier.IsAvailable, message = "Status updated successfully" });

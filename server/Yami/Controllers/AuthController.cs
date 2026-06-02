@@ -14,7 +14,7 @@ namespace Yami.Controllers
             _authService = authService;
         }
 
-        // הוספת RememberMe כחלק מהגוף של הבקשה
+        //  RememberMe 
         public record LoginRequest(string Email, string Password, bool RememberMe);
 
         [HttpPost("login")]

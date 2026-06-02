@@ -24,7 +24,6 @@ namespace Yami
             // ===== 1. Services =====
             builder.Services.AddSignalR();
 
-            // הוספת תמיכה בהתעלמות מלולאות ב-JSON (מאוחד ונקי)
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
@@ -32,10 +31,8 @@ namespace Yami
                     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 });
 
-            // רישום ה-Worker כדי שירוץ ברקע ברגע שהשרת עולה
             builder.Services.AddHostedService<OrderAssignmentWorker>();
 
-            // מאפשר לזהות משתמשים ב-SignalR לפי ה-ID שנמצא בתוך ה-JWT
             builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 
             // ===== 2. Database =====
@@ -88,7 +85,6 @@ namespace Yami
                         ClockSkew = TimeSpan.Zero
                     };
 
-                    // קריטי ל-SignalR: שליפת הטוקן מה-Query String בחיבור הראשוני
                     options.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
@@ -96,7 +92,6 @@ namespace Yami
                             var accessToken = context.Request.Query["access_token"];
                             var path = context.HttpContext.Request.Path;
 
-                            // התיקון כאן: מאפשר חילוץ טוקן לכל נתיב של ה-Hubs שלך באופן גורף
                             if (!string.IsNullOrEmpty(accessToken) &&
                                 (path.StartsWithSegments("/trackingHub") || path.StartsWithSegments("/orderHub")))
                             {
@@ -115,7 +110,7 @@ namespace Yami
                     policy.WithOrigins("http://localhost:5174", "http://localhost:5173")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials(); // חובה ל-SignalR
+                          .AllowCredentials(); // SignalR
                 });
             });
 
@@ -157,24 +152,20 @@ namespace Yami
 
             app.UseHttpsRedirection();
 
-            // סדר ה-Middleware קריטי!
             app.UseCors("YamiPolicy");
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // ===== 8. Endpoints =====
 
             // Replace the conflicting line with the fully qualified alias
             app.MapHub<TrackingHub>("/trackingHub");
-            //app.MapHub<TrackingHub>("/orderHub"); // נשאר כאן למקרה שקומפוננטות אחרות תלויות בו, אך כעת הוא מאובטח ומחלץ טוקן
             app.MapControllers();
 
             app.Run();
         }
     }
 
-    // מאפשר לשלוח הודעות לשליח ספציפי לפי ה-ID מהטוקן
     public class CustomUserIdProvider : IUserIdProvider
     {
         public string GetUserId(HubConnectionContext connection)

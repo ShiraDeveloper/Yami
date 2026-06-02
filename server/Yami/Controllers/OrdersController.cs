@@ -23,49 +23,44 @@ namespace Yami.Controllers
             _storeService = storeService;
         }
 
-        // 1. יצירת הזמנה חדשה
         [HttpPost("create")]
         public async Task<IActionResult> CreateOrder([FromBody] OrderCreateDto dto)
         {
             try
             {
-                // שליפה ישירה מה-Claims של המשתמש המחובר
                 var claim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("id");
 
                 if (claim == null)
                 {
-                    return Unauthorized("מזהה משתמש חסר בטוקן - נא להתחבר מחדש");
+                    return Unauthorized("User ID missing from token - please reconnect");
                 }
 
                 int userId = int.Parse(claim.Value);
-                var store = await _storeService.GetById(dto.StoreId); // 📌 ודאי שקיים שדה כזה ב-dto וש- _context מוזרק ב-Controller
+                var store = await _storeService.GetById(dto.StoreId); 
 
                 if (store == null)
                 {
-                    return NotFound("החנות המבוקשת לא קיימת במערכת");
+                    return NotFound("The requested store does not exist in the system.");
                 }
 
-                // קריאה לפונקציית העזר שבודקת אם החנות פתוחה כרגע
-                if (!store.IsOpen) // 📌 ודאי שלשדה ב-DB קוראים OpeningHours או השם המדויק אצלך
+                if (!store.IsOpen) 
                 {
-                    // מחזירים שגיאה 400 עם הודעה ברורה שתוצג בריאקט
-                    return BadRequest("לא ניתן לבצע את הרכישה. החנות סגורה כעת!");
+                    return BadRequest("The purchase cannot be made. The store is currently closed!");
                 }
 
                 var order = await _orderService.CreateOrder(userId, dto);
 
-                if (order == null) return BadRequest("לא ניתן היה ליצור את ההזמנה");
+                if (order == null) return BadRequest("The order could not be created.");
 
                 return Ok(order);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating order");
-                return StatusCode(500, $"שגיאת שרת: {ex.Message}");
+                return StatusCode(500, $"Server error: {ex.Message}");
             }
         }
 
-        // 2. אישור הזמנה (Accept)
         [HttpPost("accept/{orderId}")]
         public async Task<IActionResult> AcceptOrder(int orderId)
         {
@@ -81,7 +76,6 @@ namespace Yami.Controllers
             }
         }
 
-        // 3. דחיית הזמנה (Reject)
         [HttpPost("reject/{orderId}")]
         public async Task<IActionResult> RejectOrder(int orderId)
         {
@@ -97,7 +91,6 @@ namespace Yami.Controllers
             }
         }
 
-        // 4. שליפת מסלול השליח
         [HttpGet("my-route")]
         public async Task<IActionResult> GetMyRoute()
         {
@@ -121,7 +114,6 @@ namespace Yami.Controllers
             }
         }
 
-        // 5. עדכון סטטוס
         [HttpPost("complete-task/{orderId}")]
         public async Task<IActionResult> CompleteTask(int orderId, [FromBody] StatusUpdateDto dto)
         {
@@ -138,7 +130,7 @@ namespace Yami.Controllers
             }
         }
 
-        // --- פונקציות עזר פרטיות ---
+        // --- Private helper functions ---
 
         private int GetUserId()
         {
@@ -155,10 +147,10 @@ namespace Yami.Controllers
             var userId = GetUserId();
             var courierId = await _orderService.GetCourierIdByUserId(userId);
 
-            if (courierId == 0) throw new Exception("משתמש אינו מזוהה כשליח במערכת");
+            if (courierId == 0) throw new Exception("User is not recognized as a courier in the system");
             return courierId;
         }
-        // בתוך OrdersController.cs
+
         [HttpGet("my-orders")]
         [Authorize]
         public async Task<IActionResult> GetMyOrders()
@@ -170,7 +162,6 @@ namespace Yami.Controllers
 
                 int userId = int.Parse(claim.Value);
 
-                // תיקון: קריאה למתודה שמחזירה את רשימת ההזמנות של המשתמש
                 var orders = await _orderService.GetOrdersByUserId(userId);
 
                 return Ok(orders);

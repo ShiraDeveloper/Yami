@@ -32,22 +32,18 @@ namespace API.Controllers
         {
             try
             {
-                // קריאה לפונקציה שמימשת ב-Service
                 var storeDto = await _storeService.GetById(id);
 
-                // אם החנות לא נמצאה, השרת יחזיר 404 מסודר עם הודעה
                 if (storeDto == null)
                 {
-                    return NotFound(new { message = "החנות המבוקשת לא נמצאה" });
+                    return NotFound(new { message = "The requested store was not found." });
                 }
 
-                // אם נמצאה - מחזירים אותה עם ה-IsOpen המחובר!
                 return Ok(storeDto);
             }
             catch (Exception ex)
             {
-                // במקרה של תקלה לא צפויה
-                return StatusCode(500, $"שגיאת שרת פנימית: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
     }
