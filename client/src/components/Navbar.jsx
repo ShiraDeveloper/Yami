@@ -17,10 +17,9 @@ function getRoleFromToken() {
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const role = getRoleFromToken();
-
+const [role, setRole] = useState(getRoleFromToken());
   const [userName, setUserName] = useState("Loading...");
-  const [isLive, setIsLive] = useState(false); // ברירת מחדל כבוי עד לקבלת הנתונים מהשרת
+  const [isLive, setIsLive] = useState(false); 
   const [cartCount, setCartCount] = useState(0);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7234";
@@ -66,6 +65,21 @@ export default function Navbar() {
     }
   }, [role, API_BASE_URL]);
 
+
+  useEffect(() => {
+  const updateRole = () => {
+    setRole(getRoleFromToken());
+  };
+
+  window.addEventListener("storage", updateRole);
+
+  updateRole();
+
+  return () => {
+    window.removeEventListener("storage", updateRole);
+  };
+}, []);
+
   useEffect(() => {
     const updateCartCount = () => {
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -78,10 +92,8 @@ export default function Navbar() {
       setCartCount(totalItems);
     };
 
-    // טעינה ראשונית
     updateCartCount();
 
-    // האזנה לעדכונים
     window.addEventListener("cartUpdated", updateCartCount);
 
     return () => {
@@ -94,7 +106,6 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // פונקציית עדכון סטטוס אקטיבית מול השרת
   const toggleStatus = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -114,7 +125,6 @@ export default function Navbar() {
       if (res.ok) {
         setIsLive(nextStatus);
 
-        // ריענון קל כדי לסנכרן אוטומטית את ה-Dashboard וחיבור ה-SignalR
         window.location.reload();
       }
     } catch (err) {
@@ -124,7 +134,6 @@ export default function Navbar() {
 
   return (
     <div style={styles.navbar}>
-      {/* לוגו האפליקציה - עגול */}
       <h3 style={styles.logo} onClick={() => navigate(role === "Delivery" ? "/courier" : "/stores")}>
         <img
           src="../public/images/logo.png"
@@ -133,9 +142,7 @@ export default function Navbar() {
         />
       </h3>
 
-      {/* תפריט הקישורים והכפתורים */}
       <div style={styles.links}>
-        {/* כפתורים שמופיעים רק לשליח (Delivery) */}
         {role === "Delivery" && (
           <>
             <button
@@ -152,7 +159,6 @@ export default function Navbar() {
           </>
         )}
 
-        {/* כפתורים שמופיעים רק ללקוח (Customer) */}
         {role === "Customer" && (
           <>
             <button onClick={() => navigate("/stores")}>Stores</button>
@@ -169,22 +175,18 @@ export default function Navbar() {
               )}
             </button>
             <button onClick={() => navigate("/my-orders")}>My Orders</button>
+                      <button onClick={logout} style={styles.logout}>
+            Logout
+          </button>
           </>
         )}
 
-        {/* שורת שלום ושם המשתמש הדינמי */}
         {role && (
           <span style={styles.welcomeText}>
             Hello, {userName}
           </span>
         )}
 
-        {/* כפתור Logout */}
-        {role && (
-          <button onClick={logout} style={styles.logout}>
-            Logout
-          </button>
-        )}
       </div>
     </div>
   );
@@ -233,10 +235,10 @@ const styles = {
     color: "#ffffff",
   },
   connected: {
-    backgroundColor: "#2E7D32", // ירוק כהה וברור יותר לסטטוס פעיל
+    backgroundColor: "#2E7D32", 
   },
   disconnected: {
-    backgroundColor: "#C62828", // אדום ברור לסטטוס מנותק
+    backgroundColor: "#C62828",
   },
   cartButton: {
   position: "relative",

@@ -30,7 +30,6 @@ export default function CourierDashboard() {
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7234";
 
-    // --- שליפת מצב זמינות נוכחי מהשרת ---
     const fetchAvailabilityStatus = useCallback(async () => {
         const token = localStorage.getItem("token");
         if (!token) return;
@@ -48,7 +47,6 @@ export default function CourierDashboard() {
         }
     }, [API_BASE_URL]);
 
-    // --- שליפת משימות פעילות ---
     const fetchTasks = useCallback(async () => {
         const token = localStorage.getItem("token");
         if (!token) return;
@@ -72,7 +70,6 @@ export default function CourierDashboard() {
         }
     }, [API_BASE_URL]);
 
-    // --- הבאת נתונים ראשונית ---
     useEffect(() => {
         const initializeDashboard = async () => {
             await fetchAvailabilityStatus();
@@ -130,7 +127,6 @@ export default function CourierDashboard() {
                 return prev;
             });
         });
-        // 📌 מאזין לאירוע שהוספנו בשרת - מעלים את ההצעה מהמסך בשקט
         connection.on("RemoveOrderFromScreen", (cancelledOrderId) => {
             console.log(`🤫 Order ${cancelledOrderId} was cancelled by server.`);
             setNewOffer(prev => {
@@ -192,7 +188,6 @@ export default function CourierDashboard() {
 
     }, [API_BASE_URL, isAvailable]);
 
-    // --- שליחת מיקום בזמן אמת ---
     useEffect(() => {
         if (!tasks.length) return;
 
@@ -208,7 +203,6 @@ export default function CourierDashboard() {
                 try {
                     const connection = connectionRef.current;
 
-                    // 🔥 ההגנה שחסרה אצלך
                     if (
                         !connection ||
                         connection.state !== signalR.HubConnectionState.Connected
@@ -249,7 +243,6 @@ export default function CourierDashboard() {
 
     }, [tasks]);
 
-    // --- אישור הצעת משלוח ---
     const handleAcceptOffer = async (orderId) => {
         const token = localStorage.getItem("token");
         try {
@@ -270,12 +263,10 @@ export default function CourierDashboard() {
         }
     };
 
-    // --- דחיית הצעת משלוח ---
     const handleRejectOffer = () => {
         setNewOffer(null);
     };
 
-    // --- עדכון סטטוס משימה ---
     const handleCompleteTask = async () => {
         const token = localStorage.getItem("token");
         const currentTask = tasks[currentIndex];
@@ -294,18 +285,16 @@ export default function CourierDashboard() {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
-                    body: JSON.stringify({ status: 3 }),// סוג 3 מסמן השלמת משימה (איסוף או מסירה)
+                    body: JSON.stringify({ status: 3 }),
                 }
             );
 
             if (res.ok) {
-                // מסיר את המשימה שהושלמה מיד מהמסך
                 setTasks((prev) => {
                     const updated = prev.filter(
                         (t) => (t.orderId || t.id) !== orderId
                     );
 
-                    // התאמת אינדקס כדי שלא ייצא מהטווח
                     if (updated.length === 0) {
                         setCurrentIndex(0);
                     } else if (currentIndex >= updated.length) {
@@ -332,7 +321,6 @@ export default function CourierDashboard() {
     return (
         <div style={styles.appContainer}>
 
-            {/* חלונית הצעה חדשה */}
             {isAvailable && newOffer && (
                 <div style={styles.offerCard}>
                     <div style={{ color: "#FBC02D", fontWeight: "bold", marginBottom: "5px" }}>⚡ New order available!</div>
@@ -346,7 +334,6 @@ export default function CourierDashboard() {
                 </div>
             )}
 
-            {/* רשימת משימות פעילה */}
             {isAvailable && tasks.length > 0 && currentTask ? (
                 <div style={styles.taskCard}>
                     <div style={{ marginBottom: "15px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -356,13 +343,11 @@ export default function CourierDashboard() {
                         <span style={orderIdBadgeStyle}>Order ID: {currentTask.id}</span>
                     </div>
                     <h2 style={{ margin: "0 0 5px 0", fontSize: "1.5rem" }}>{currentTask.address}</h2>
-                    {/* שורת שם הלקוח */}
                     <div style={{ color: "#666", marginBottom: "12px", fontSize: "16px" }}>
                         <span style={{ color: "#333", fontWeight: "bold", marginRight: "6px" }}>Customer Name:</span>
                         {currentTask.customer?.name || "Yami Customer"}
                     </div>
 
-                    {/* שורת טלפון הלקוח */}
                     <div style={{ color: "#666", marginBottom: "25px", fontSize: "16px" }}>
                         <span style={{ color: "#333", fontWeight: "bold", marginRight: "6px" }}>Customer Phone:</span>
                         {currentTask.customer?.Phone || "No Phone Provided"}

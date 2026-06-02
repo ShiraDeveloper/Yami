@@ -21,7 +21,6 @@ const saveCart = (updated) => {
   window.dispatchEvent(new Event("cartUpdated"));
 };
 
-  // ✅ חסימה של כמה חנויות
   const addToCartSafe = (product) => {
     if (cart.length > 0 && cart[0].storeId !== product.storeId) {
       alert("You can order only from one store");
@@ -64,7 +63,6 @@ const saveCart = (updated) => {
     0
   );
 
-  // ✅ מחיר משלוח פשוט לפי כמות (זמני)
   const deliveryPrice =
     cart.length === 0
       ? 0
@@ -131,7 +129,7 @@ const styles = {
     padding: "30px",
     backgroundColor: "#F8FAFC",
     minHeight: "100vh",
-    color: "#1F2937", // טקסט כהה כללי
+    color: "#1F2937", 
   },
 
   title: {

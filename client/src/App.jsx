@@ -35,34 +35,6 @@ function AppContent() {
   const hideNavbarRoutes = ["/", "/register", "/login"];
   const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
 
-  // useEffect(() => {
-  //   if (role !== "Delivery") return;
-
-  //   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-
-  //   const interval = setInterval(async () => {
-  //     try {
-  //       const response = await fetch('/api/Orders/check-offers', {
-  //         headers: {
-  //           'Authorization': `Bearer ${token}`,
-  //           'Content-Type': 'application/json'
-  //         }
-  //       });
-
-  //       if (response.ok) {
-  //         const data = await response.json();
-  //         if (data && data.offer) {
-  //           setNewOffer(data.offer);
-  //         }
-  //       }
-  //     } catch (err) {
-  //       console.error("Error checking offers:", err);
-  //     }
-  //   }, 10000);
-
-  //   return () => clearInterval(interval);
-  // }, [role]);
-
   if (location.pathname === "/" && role) {
     if (role === "Delivery") return <Navigate to="/courier" replace />;
     if (role === "Admin") return <Navigate to="/admin" replace />;
@@ -72,15 +44,6 @@ function AppContent() {
   return (
     <>
       {shouldShowNavbar && <Navbar />}
-
-      {/* {newOffer && (
-        <div style={{ position: 'fixed', top: 10, right: 10, zIndex: 9999, background: '#008080', color: '#fff', padding: '15px', borderRadius: '8px' }}>
-          יש לך הצעת משלוח חדשה!
-          <button style={{marginLeft: '10px'}} onClick={() => { setNewOffer(null); navigate('/courier'); }}>
-            צפה בהצעה
-          </button>
-        </div>
-      )} */}
       
       <Routes>
         <Route path="/" element={<Login />} />

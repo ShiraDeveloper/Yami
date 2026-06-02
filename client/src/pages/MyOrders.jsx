@@ -112,8 +112,7 @@ export default function MyOrders() {
             const storeName = order.store?.name || order.Store?.Name || "Unknown Store";
             const date = new Date(order.createdAt || order.CreatedAt);
             const total = order.totalPrice || order.TotalPrice || order.total || 0;
-            // בדיקה האם ההזמנה נמצאת כרגע בשלב הובלה/משלוח
-            const isTrackingAvailable = statusKey === "On the way" || statusKey === 2; // (כולל בדיקה אם זה מגיע כטקסט או כמספר מה-Enum)
+            const isTrackingAvailable = statusKey === "On the way" || statusKey === 2; 
             return (
               <div key={orderId} style={styles.card}>
                 <div style={styles.cardLeft}>
@@ -172,7 +171,6 @@ export default function MyOrders() {
   );
 }
 
-// כל הסטיילים מרוכזים כעת בתוך אובייקט אחד תקין
 const styles = {
   container: {
     padding: "40px 20px",
@@ -237,14 +235,13 @@ const styles = {
     color: "#1F2937",
   },
   
-  // 🌟 הנה התיקון: הכנסנו אותו ישירות לתוך styles עם נקודתיים
   orderIdBadge: {
-    backgroundColor: "#f3f4f6",  // רקע אפרפר-בהיר מעודן
-    color: "#1f2937",            // צבע טקסט כהה
-    padding: "4px 10px",         // מרווח פנימי קטן ליצירת תגית
-    borderRadius: "12px",        // פינות עגולות
-    fontSize: "13px",            // גודל גופן נקי
-    fontWeight: "600",           // טקסט מודגש
+    backgroundColor: "#f3f4f6",  
+    color: "#1f2937",            
+    padding: "4px 10px",        
+    borderRadius: "12px",       
+    fontSize: "13px",           
+    fontWeight: "600",        
     display: "inline-flex",
     alignItems: "center"
   },

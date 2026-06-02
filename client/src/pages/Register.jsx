@@ -1,6 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
 export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,22 +51,27 @@ export default function Register() {
       );
 
       const data = await response.json();
+      console.log("REGISTER RESPONSE:", data);
 
       if (!response.ok) {
         setError(data.message || "Registration failed");
         return;
       }
 
-      // --- שלב הכניסה האוטומטית ---
-      // שמירת הטוקן שהתקבל מהשרת ישר ב-localStorage
-      localStorage.setItem("token", data.token);
+localStorage.setItem("token", data.token.token);
+localStorage.setItem("userId", data.token.userId);    
+  window.dispatchEvent(new Event("storage"));
+const decoded = parseJwt(data.token);
 
-      // ניווט ישיר לפי ה-Role שהתקבל
-      const role = data.role;
-      if (role === "Customer") navigate("/stores");
-      else if (role === "Admin") navigate("/admin");
-      else if (role === "Delivery" || role === "Courier") navigate("/courier");
-      else navigate("/stores");
+const role =
+  decoded?.role ||
+  decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+if (role === "Customer") navigate("/stores");
+else if (role === "Admin") navigate("/admin");
+else if (role === "Delivery" || role === "Courier")
+  navigate("/courier");
+else navigate("/stores");
 
     } catch (err) {
       setError("Server error during registration");

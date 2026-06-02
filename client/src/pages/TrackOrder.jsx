@@ -58,7 +58,7 @@ export default function TrackOrder() {
   const onLoad = (map) => {
     mapRef.current = map;
   };
-
+  // ZOOM
   const fitMapBounds = (pos) => {
     if (!mapRef.current || !window.google) return;
 
@@ -73,7 +73,6 @@ export default function TrackOrder() {
   useEffect(() => {
     if (!isLoaded) return;
 
-    // ✅ מניעת חיבור כפול (זה מקור הבעיה שלך!)
     if (connectionRef.current) return;
 
     setEmojiIcon(createEmojiIcon("🛵", 32));
@@ -176,7 +175,7 @@ export default function TrackOrder() {
   return (
     <div style={{ width: "100%", height: "100vh", position: "relative" }}>
 
-      {/* ================= TOP CARD (עיצוב מלא שלך) ================= */}
+      {/* ================= TOP CARD  ================= */}
       <div style={{
         position: "absolute",
         top: "20px",
@@ -236,7 +235,7 @@ export default function TrackOrder() {
       </GoogleMap>
 
       {/* ================= BOTTOM CARD ================= */}
-      <div style={{
+      {/* <div style={{
         position: "absolute",
         bottom: "30px",
         left: "50%",
@@ -256,7 +255,7 @@ export default function TrackOrder() {
           <div>ETA: {eta || "--"}</div>
           <div>Distance: {distance || "--"}</div>
         </div>
-      </div>
+      </div> */}
 
     </div>
   );

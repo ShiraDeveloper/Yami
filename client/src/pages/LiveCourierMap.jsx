@@ -25,7 +25,6 @@ const cleanMapOptions = {
   ]
 };
 
-// 🔵 אייקון השליח - נקודה כחולה מהבהבת
 const COURIER_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
     <circle cx="20" cy="20" r="16" fill="rgba(59, 130, 246, 0.3)">
@@ -37,7 +36,6 @@ const COURIER_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
   </svg>
 `.trim())}`;
 
-// 📦 אייקון יעד המשלוח (החבילה)
 const PACKAGE_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="40" height="40">
     <circle cx="32" cy="32" r="30" fill="white" stroke="rgb(229,231,235)" stroke-width="2"/>
@@ -63,9 +61,8 @@ export default function LiveCourierMap() {
   const currentIndexRef = useRef(0);
   const ordersRef = useRef([]);
   const isRoutingRef = useRef(false);
-  const courierRef = useRef(null); // שומר גישה מיידית למיקום האחרון של ה-GPS בשביל ה-API
+  const courierRef = useRef(null); 
 
-  // 1. בניית קווי הניווט (Waze) 
   const buildRoute = useCallback((origin, currentStops) => {
     if (!window.google || !origin || !currentStops || !currentStops.length || isRoutingRef.current) return;
 
@@ -101,7 +98,6 @@ export default function LiveCourierMap() {
     );
   }, []);
 
-  // 2. שליפת היעדים עם מנגנון דחיפה מיידי (מניע את ה-10 דקות המתנה!)
   const loadRoute = useCallback(async () => {
     try {
       const res = await fetch("https://localhost:7234/api/orders/route", {
@@ -125,7 +121,6 @@ export default function LiveCourierMap() {
       setOrders(formatted);
       ordersRef.current = formatted;
 
-      // 🔥 התיקון הקריטי: אם ה-GPS כבר החזיר מיקום של השליח, נבנה את המסלול מיידית עכשיו!
       if (courierRef.current && formatted.length > 0) {
         buildRoute(courierRef.current, formatted);
       }
@@ -137,14 +132,12 @@ export default function LiveCourierMap() {
     }
   }, [buildRoute]);
 
-  // 3. טעינה ראשונית של היעדים מיד כשגוגל מפות מוכן
   useEffect(() => {
     if (isLoaded) {
       loadRoute();
     }
   }, [isLoaded, loadRoute]);
 
-  // 4. מנוע המעקב הרציף של ה-GPS וסנכרון מול ה-Hub
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -188,19 +181,16 @@ export default function LiveCourierMap() {
             };
 
             setCourier(currentGpsPos);
-            courierRef.current = currentGpsPos; // שמירה ב-Ref זמין
+            courierRef.current = currentGpsPos; 
 
-            // הזזת המצלמה בצורה חלקה ללא שינוי ה-State של ה-center
             if (mapRef.current) {
               mapRef.current.panTo(currentGpsPos);
             }
 
-            // עדכון קו הניווט אל היעדים בתנועה
             if (ordersRef.current.length > 0) {
               buildRoute(currentGpsPos, ordersRef.current);
             }
 
-            // הפצת המיקום לשרת ה-C# בזמן אמת
             if (hubConnectionRef.current && hubConnectionRef.current.state === signalR.HubConnectionState.Connected) {
               try {
                 const activeOrder = ordersRef.current.find(o => o.status === "pending");
@@ -236,19 +226,17 @@ export default function LiveCourierMap() {
   if (!isLoaded) return <div style={{ padding: "20px" }}>טוען מערכת ניווט...</div>;
 
 return (
-    // 🔥 שינוי: במקום 100vw ו-100vh, השתמשנו ב-100% כדי שיתפוס את ה-70% שנתנו לו באבא
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <GoogleMap
-        mapContainerStyle={containerStyle} // הסטייל הזה כבר מוגדר כ-100%, 100% וזה מצוין
+        mapContainerStyle={containerStyle} 
         defaultCenter={DEFAULT_CENTER}
-        center={courier || DEFAULT_CENTER} // שימוש במיקום השליח כמרכז המפה
+        center={courier || DEFAULT_CENTER}
         zoom={16} 
         onLoad={(map) => {
           mapRef.current = map;
         }}
         options={cleanMapOptions}
       >
-        {/* המרקרים וה-Directions נשארים בדיוק כפי שהם */}
         {courier && (
           <Marker 
             position={courier} 

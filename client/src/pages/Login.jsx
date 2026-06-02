@@ -36,7 +36,6 @@ export default function Login() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          // שולחים true קבוע לשרת, כדי שהשרת תמיד ינפיק טוקן ארוך טווח
           body: JSON.stringify({ email, password, rememberMe: true }), 
         }
       );
@@ -48,15 +47,13 @@ export default function Login() {
         return;
       }
 
-      // מנקים שאריות ישנות משני אזורי האחסון
       localStorage.removeItem("token");
       sessionStorage.removeItem("token");
 
-      // שמירה תמידית ב-localStorage כדי שהמשתמש יישאר מחובר גם אחרי סגירת הדפדפן
       localStorage.setItem("token", data.token); 
       localStorage.setItem("userId", data.userId);
-
-      // פענוח JWT וניווט
+      window.dispatchEvent(new Event("storage"));
+      
       const decoded = parseJwt(data.token);
       const role = decoded?.role || decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
@@ -103,7 +100,6 @@ export default function Login() {
           required
         />
 
-        {/* ה-Checkbox הוסר לחלוטין מכאן בהתאם לבקשתך */}
 
         <button style={styles.button} disabled={loading} type="submit">
           {loading ? "Loading..." : "Login"}

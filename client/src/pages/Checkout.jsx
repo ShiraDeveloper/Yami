@@ -24,13 +24,12 @@ export default function Checkout() {
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(manualAddress)}`
     );
     const data = await res.json();
-    if (!data || data.length === 0) throw new Error("כתובת לא נמצאה במערכת המפות");
+    if (!data || data.length === 0) throw new Error("Address not found in the maps system");
     return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
   };
 
 const getAddressFromCoords = async (lat, lng) => {
     try {
-      // 🌟 הוספנו &accept-language=en בסוף ה-URL כדי להכריח את השרת להחזיר את השמות באנגלית!
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
       const data = await res.json();
       return data.display_name || "Current location";
@@ -88,7 +87,8 @@ const getAddressFromCoords = async (lat, lng) => {
         finalAddress = address;
       } else {
         const coords = await getCurrentLocation();
-        lat = coords.lat; lng = coords.lng;
+        lat = coords.lat; 
+        lng = coords.lng;
         finalAddress = await getAddressFromCoords(lat, lng);
       }
 
@@ -120,13 +120,10 @@ const getAddressFromCoords = async (lat, lng) => {
           const errorMsg = await response.text();
           throw new Error(errorMsg || "Failed to create order");
       }
-      // --- הקוד הקיים שלך ---
       localStorage.removeItem("cart");
 
-      // 🌟 התיקון: משגרים את האירוע כדי לעדכן את ה-Navbar ל-0 באופן מיידי!
       window.dispatchEvent(new Event("cartUpdated"));
 
-      // 🌟 התיקון (אופציונלי): מאפסים את הסטייט המקומי בעמוד כדי שהטבלה/רשימה תתרוקן
       if (typeof setCart === "function") setCart([]);
 
       localStorage.removeItem("cart");

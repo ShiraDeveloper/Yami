@@ -9,13 +9,11 @@ export default function StoreList() {
   const [error, setError] = useState("");
   const [location, setLocation] = useState(null);
 
-  // סטייט עבור הסינונים
   const [filterKosher, setFilterKosher] = useState(false);
   const [filterOpenNow, setFilterOpenNow] = useState(false);
 
   const navigate = useNavigate();
 
-  // קבלת מיקום בטעינה הראשונית
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -30,12 +28,10 @@ export default function StoreList() {
     );
   }, []);
 
-  // טעינת חנויות מה-API
   useEffect(() => {
     if (location) fetchStores();
   }, [location]);
 
-  // הפעלת פילטרים משולבים
   const applyFiltersAndSearch = useCallback(() => {
     let result = [...stores];
 
@@ -49,7 +45,6 @@ export default function StoreList() {
       result = result.filter((s) => s.kosherTags && s.kosherTags.trim() !== "");
     }
 
-    // 🌟 פילטר חכם: משתמש ישירות ב-isOpen שהגיע מהשרת!
     if (filterOpenNow) {
       result = result.filter((s) => s.isOpen === true || s.IsOpen === true);
     }
@@ -72,7 +67,6 @@ export default function StoreList() {
         return;
       }
 
-      // קריאה ל-API של רשימת החנויות
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/Stores?userLat=${location.lat}&userLng=${location.lng}`,
         {
@@ -85,7 +79,7 @@ export default function StoreList() {
       const data = await res.json();
       const storesData = Array.isArray(data) ? data : data.stores || data.data || [];
 
-      console.log("ALL STORES FROM SERVER:", storesData); // הדפסת בדיקה לקונסול
+      console.log("ALL STORES FROM SERVER:", storesData); 
 
       setStores(storesData);
       setFilteredStores(storesData);
@@ -109,8 +103,7 @@ export default function StoreList() {
 
   return (
     <div style={styles.container}>
-      
-      {/* 📌 אזור דביק (Sticky Header) */}
+
       <div style={styles.stickyHeader}>
         <h1 style={styles.title}>Stores Near You</h1>
 
@@ -121,7 +114,6 @@ export default function StoreList() {
           style={styles.search}
         />
 
-        {/* כפתורי סינון */}
         <div style={styles.filterContainer}>
           <button
             style={filterKosher ? styles.activeFilterBtn : styles.filterBtn}
@@ -139,27 +131,27 @@ export default function StoreList() {
         </div>
       </div>
 
-      {/* רשימת החנויות */}
       <div style={styles.list}>
         {filteredStores.map((store) => {
-          // 🌟 שליפת המצב המדויק מהשרת (תומך באות קטנה או גדולה)
           const open = store.isOpen === true || store.IsOpen === true;
-          
-          // 🌟 לוקח את מחרוזת השעות המקורית מה-DB בלי לעשות מניפולציות שמחרבשות את השעה
-          const displayHours = store.openHours || store.openingHours || "N/A"; 
-          
+
+          const displayHours = store.openHours || store.openingHours || "N/A";
+
           return (
-            <div 
-              key={store.id} 
+            <div
+              key={store.id}
               style={styles.rectangleCard}
               onClick={() => navigate(`/store/${store.id}`)}
             >
               <div style={styles.imageContainer}>
                 <img
-                  src={store.imageUrl || getFallbackImage(store.name)}
+                  src={
+                    store.imageUrl
+                      ? `${window.location.origin}${store.imageUrl}`
+                      : getFallbackImage(store.name)
+                  }
                   alt={store.name || "Store"}
-                  style={styles.image}
-                />
+                  style={styles.image} />
                 <div style={styles.timeBadge}>
                   {store.distanceFromUser ? `${store.distanceFromUser.toFixed(1)} km` : "0 m"}
                 </div>
@@ -168,10 +160,10 @@ export default function StoreList() {
               <div style={styles.cardBody}>
                 <div style={styles.headerRow}>
                   <h2 style={styles.storeName}>{store.name || "Unnamed Store"}</h2>
-                  <div style={styles.ratingContainer}>
+                  {/* <div style={styles.ratingContainer}>
                     <span style={styles.star}>★</span>
                     <span style={styles.ratingText}>{store.rating?.toFixed(1) || "4.8"}</span>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div style={styles.metaRow}>
@@ -179,9 +171,8 @@ export default function StoreList() {
                   {store.kosherTags && (
                     <span style={styles.kosherBadge}>• {store.kosherTags}</span>
                   )}
-                  {/* 🌟 מציג Open או Closed בצורה מושלמת לפי קביעת השרת */}
                   <span style={open ? styles.openText : styles.closedText}>
-                    • {open ? "Open" : "Closed"} 
+                    • {open ? "Open" : "Closed"}
                     <span style={styles.hoursText}> ({displayHours})</span>
                   </span>
                 </div>
@@ -215,7 +206,7 @@ const styles = {
   image: { width: "100%", height: "100%", objectFit: "cover" },
   timeBadge: { position: "absolute", bottom: "12px", right: "12px", backgroundColor: "#ffffff", padding: "4px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "700", color: "#1F2937", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" },
   cardBody: { padding: "20px", display: "flex", flexDirection: "column", justifyContent: "center", flexGrow: 1, gap: "6px" },
-  headerRow: { display: "flex", justifyContent: "space-between", alignItems: "center" }, 
+  headerRow: { display: "flex", justifyContent: "space-between", alignItems: "center" },
   storeName: { fontSize: "20px", fontWeight: "700", color: "#0C1A30", margin: 0 },
   ratingContainer: { display: "flex", alignItems: "center", gap: "4px" },
   star: { color: "#F59E0B", fontSize: "16px" },
@@ -225,7 +216,7 @@ const styles = {
   kosherBadge: { color: "#10B981", fontWeight: "600" },
   openText: { color: "#10B981", fontWeight: "600" },
   closedText: { color: "#EF4444", fontWeight: "600" },
-  hoursText: { fontSize: "12px", color: "#6B7280", fontWeight: "normal" }, 
+  hoursText: { fontSize: "12px", color: "#6B7280", fontWeight: "normal" },
   descriptionText: { fontSize: "14px", color: "#4B5563", margin: "4px 0 0 0", lineHeight: "1.4" },
   center: { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", flexDirection: "column", color: "#1F2937", backgroundColor: "#F8FAFC" }
 };
